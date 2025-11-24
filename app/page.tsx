@@ -1,65 +1,115 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { dummyPosts, featuredPost } from "@/lib/dummy-data";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="text-center py-16">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
+          Invest Smarter, Live More.
+        </h1>
+        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          Deep dive analysis into global markets, crypto assets, and macro trends.
+        </p>
+        <div className="mt-8 max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            className="h-12 text-base grow"
+          />
+          <Button size="lg" className="h-12 text-base">
+            Subscribe
+          </Button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <p className="mt-4 text-sm text-muted-foreground">
+          <Link href="/archive" className="underline hover:text-foreground">
+            Let me read it first
+          </Link>
+        </p>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="text-center py-8">
+        <p className="text-sm text-muted-foreground">
+          Trusted by investors from Goldman Sachs, J.P. Morgan, and BlackRock.
+        </p>
+      </section>
+
+      <Separator />
+
+      {/* Featured Post Section */}
+      <section className="py-16">
+        <Card className="overflow-hidden">
+          <Link href={`/posts/${featuredPost.id}`}>
+            <div className="aspect-video relative">
+              <Image
+                src={`https://placehold.co/1200x675/003366/FFFFFF/png?text=Livemore`}
+                alt={featuredPost.title}
+                fill
+                className="object-cover transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+            <CardHeader>
+              <CardTitle className="text-2xl md:text-3xl font-bold">
+                {featuredPost.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                {featuredPost.summary}
+              </p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={`https://i.pravatar.cc/40?u=${featuredPost.author.name}`} />
+                  <AvatarFallback>{featuredPost.author.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span>{featuredPost.author.name}</span>
+                <span>•</span>
+                <span>{featuredPost.date}</span>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+      </section>
+
+      <Separator />
+
+      {/* Recent Posts Feed */}
+      <section className="py-16">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground mb-8">
+          Recent Posts
+        </h2>
+        <div className="space-y-8">
+          {dummyPosts.slice(1).map((post) => (
+            <Link href={`/posts/${post.id}`} key={post.id} className="block group">
+              <article>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xl font-semibold group-hover:underline">
+                    {post.title}
+                  </h3>
+                  <Badge variant={post.status === 'Paid' ? 'default' : 'secondary'}>
+                    {post.status}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground mb-2">
+                  {post.summary}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {post.date}
+                </p>
+              </article>
+            </Link>
+          ))}
         </div>
-      </main>
+      </section>
     </div>
   );
 }
