@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/server";
+import { Libre_Baskerville } from 'next/font/google';
+import { Lock } from 'lucide-react';
+import { NewsletterForm } from '@/components/forms/NewsletterForm';
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ['latin'],
+  weight: '700',
+});
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -23,21 +31,14 @@ export default async function HomePage() {
     <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8">
       {/* Hero Section */}
       <section className="text-center py-16">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
+        <h1 className={`text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground ${libreBaskerville.className}`}>
           Invest Smarter, Live More.
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
           Deep dive analysis into global markets, crypto assets, and macro trends.
         </p>
-        <div className="mt-8 max-w-md mx-auto flex flex-col sm:flex-row gap-4">
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            className="h-12 text-base grow"
-          />
-          <Button size="lg" className="h-12 text-base">
-            Subscribe
-          </Button>
+        <div className="mt-8 max-w-md mx-auto">
+          <NewsletterForm />
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
           <Link href="/archive" className="underline hover:text-foreground">
@@ -69,7 +70,7 @@ export default async function HomePage() {
                 />
               </div>
               <CardHeader>
-                <CardTitle className="text-2xl md:text-3xl font-bold">
+                <CardTitle className={`text-2xl md:text-3xl font-bold ${libreBaskerville.className}`}>
                   {featuredPost.title}
                 </CardTitle>
               </CardHeader>
@@ -85,6 +86,8 @@ export default async function HomePage() {
                   <span>{featuredPost.author.full_name}</span>
                   <span>•</span>
                   <span>{new Date(featuredPost.created_at).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span>{Math.ceil(featuredPost.content.length / 500)} min read</span>
                 </div>
               </CardContent>
             </Link>
@@ -99,15 +102,47 @@ export default async function HomePage() {
         <h2 className="text-3xl font-bold tracking-tight text-foreground mb-8">
           Recent Posts
         </h2>
-        <div className="space-y-8">
-          {recentPosts?.map((post) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          {recentPosts?.slice(0, 2).map((post) => (
+            <Link href={`/posts/${post.slug}`} key={post.id} className="block group">
+              <Card className="h-full">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className={`text-xl font-semibold group-hover:underline ${libreBaskerville.className}`}>
+                      {post.title}
+                    </h3>
+                    <Badge variant={post.is_premium ? 'default' : 'secondary'} className={post.is_premium ? 'bg-amber-100 text-amber-800' : ''}>
+                      {post.is_premium && <Lock className="w-3 h-3 mr-1" />} 
+                      {post.is_premium ? 'Premium' : 'Free'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{post.author.full_name}</span>
+                    <span>•</span>
+                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                    <span>•</span>
+                    <span>{Math.ceil(post.content.length / 500)} min read</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground text-sm">
+                    {post.summary}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+        <div className="space-y-8 mt-8">
+          {recentPosts?.slice(2).map((post) => (
             <Link href={`/posts/${post.slug}`} key={post.id} className="block group">
               <article>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-semibold group-hover:underline">
+                  <h3 className={`text-xl font-semibold group-hover:underline ${libreBaskerville.className}`}>
                     {post.title}
                   </h3>
-                  <Badge variant={post.is_premium ? 'default' : 'secondary'}>
+                  <Badge variant={post.is_premium ? 'default' : 'secondary'} className={post.is_premium ? 'bg-amber-100 text-amber-800' : ''}>
+                    {post.is_premium && <Lock className="w-3 h-3 mr-1" />} 
                     {post.is_premium ? 'Premium' : 'Free'}
                   </Badge>
                 </div>
@@ -118,6 +153,8 @@ export default async function HomePage() {
                   <span>{post.author.full_name}</span>
                   <span>•</span>
                   <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span>{Math.ceil(post.content.length / 500)} min read</span>
                 </div>
               </article>
             </Link>
