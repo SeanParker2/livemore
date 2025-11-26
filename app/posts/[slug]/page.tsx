@@ -3,8 +3,34 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PriceChart } from "@/components/ui/charts/price-chart";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const supabase = await createClient();
+  const { data: post } = await supabase
+    .from("posts")
+    .select("title, excerpt")
+    .eq("slug", params.slug)
+    .single();
+
+  if (!post) {
+    return {
+      title: "Post Not Found",
+      description: "The post you are looking for does not exist.",
+    };
+  }
+
+  return {
+    title: post.title,
+    description: post.excerpt,
+  };
+}
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();

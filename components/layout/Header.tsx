@@ -16,6 +16,18 @@ export async function Header() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  let billingStatus: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('billing_status')
+      .eq('id', user.id)
+      .single();
+    if (profile) {
+      billingStatus = profile.billing_status;
+    }
+  }
+
   return (
     <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="h-8 bg-primary text-primary-foreground flex items-center justify-center text-sm">
@@ -40,6 +52,14 @@ export async function Header() {
               >
                 About
               </Link>
+              {billingStatus === 'founder' && (
+                <Link
+                  href="/admin/posts/create"
+                  className="font-semibold text-primary transition-colors hover:text-primary/80"
+                >
+                  Write
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

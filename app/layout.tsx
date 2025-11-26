@@ -6,12 +6,30 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Livemore",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  title: {
+    default: "Livemore",
+    template: `%s | Livemore`,
+  },
   description: "Invest Smarter, Live More.",
+  openGraph: {
+    title: 'Livemore',
+    description: 'Invest Smarter, Live More.',
+    url: process.env.NEXT_PUBLIC_SITE_URL,
+    siteName: 'Livemore',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Livemore',
+    description: 'Invest Smarter, Live More.',
+  },
 };
 
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
