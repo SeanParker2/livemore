@@ -10,7 +10,7 @@ export function Footer() {
           <div className="md:col-span-4">
             <h2 className="font-serif font-bold text-3xl tracking-tight">Livemore</h2>
             <p className="mt-4 text-sm text-stone-400">
-              Unbiased, deep-dive investment analysis for the modern investor.
+              Livemore · 探索复利的力量，寻找内心的宁静。
             </p>
           </div>
 

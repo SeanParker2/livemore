@@ -86,7 +86,7 @@ export async function Header() {
                     <DropdownMenuSeparator />
                     <form action={signOut}>
                       <DropdownMenuItem asChild>
-                        <button className="w-full text-left">Sign Out</button>
+                        <button className="w-full text-left">退出登录</button>
                       </DropdownMenuItem>
                     </form>
                   </DropdownMenuContent>
@@ -94,7 +94,7 @@ export async function Header() {
               ) : (
                 <>
                   <Button variant="ghost" asChild>
-                    <Link href="/login">Login</Link>
+                    <Link href="/login">登录</Link>
                   </Button>
                   <Button asChild>
                     <Link href="/subscribe">Subscribe</Link>

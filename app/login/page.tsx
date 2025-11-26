@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Login - Livemore",
+  title: "登录 - Livemore",
 };
 
 export default function LoginPage({ searchParams }: { searchParams: { message: string } }) {
@@ -13,23 +13,23 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
     <div className="container mx-auto flex flex-col justify-center items-center min-h-[calc(100vh-200px)]">
       <div className="w-full max-w-sm p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md">
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Welcome Back</h1>
-          <p className="text-muted-foreground">Enter your email to receive a magic link.</p>
+          <h1 className="text-3xl font-bold">欢迎回到 Livemore</h1>
+          <p className="text-muted-foreground">专业投资者的每日必读。请输入邮箱登录或注册。</p>
         </div>
         
         <form action={signInWithMagicLink} className="space-y-4">
           <div>
-            <Label htmlFor="email" className="sr-only">Email</Label>
+            <Label htmlFor="email">邮箱地址</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="name@example.com"
               required
-              className="h-12 text-base"
+              className="h-12 text-base mt-1"
             />
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold">Send Magic Link</Button>
+          <Button type="submit" className="w-full h-12 text-base font-semibold">发送登录链接 (Magic Link)</Button>
         </form>
 
         {searchParams.message && (
@@ -37,6 +37,10 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
             {searchParams.message}
           </p>
         )}
+        
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          🔒 我们尊重您的隐私。无密码登录，安全便捷。
+        </p>
       </div>
     </div>
   );
