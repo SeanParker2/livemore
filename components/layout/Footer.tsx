@@ -10,7 +10,7 @@ export function Footer() {
           <div className="md:col-span-4">
             <h2 className="font-serif font-bold text-3xl tracking-tight">Livemore</h2>
             <p className="mt-4 text-sm text-stone-400">
-              Livemore · 探索复利的力量，寻找内心的宁静。
+              为现代投资者提供独立、深度的市场分析。
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export function Footer() {
 
           {/* Newsletter */}
           <div className="md:col-span-4">
-            <h3 className="text-sm font-semibold tracking-wider uppercase text-stone-400">Stay ahead of the market.</h3>
+            <h3 className="text-sm font-semibold tracking-wider uppercase text-stone-400">订阅每周简报</h3>
             <div className="mt-4">
               <NewsletterForm isDark={true} />
             </div>

@@ -29,7 +29,7 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
               className="h-12 text-base mt-1"
             />
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold">发送登录链接 (Magic Link)</Button>
+          <Button type="submit" className="w-full h-12 text-base font-semibold">发送登录链接</Button>
         </form>
 
         {searchParams.message && (

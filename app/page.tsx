@@ -84,9 +84,9 @@ export default async function HomePage() {
                   </Avatar>
                   <span>{featuredPost.author.full_name}</span>
                   <span>•</span>
-                  <span>{new Date(featuredPost.created_at).toLocaleDateString()}</span>
+                  <span>{new Date(featuredPost.created_at).toLocaleDateString('zh-CN')}</span>
                   <span>•</span>
-                  <span>{Math.ceil(featuredPost.content.length / 500)} min read</span>
+                  <span>{Math.ceil(featuredPost.content.length / 500)} 分钟阅读</span>
                 </div>
               </CardContent>
             </Link>

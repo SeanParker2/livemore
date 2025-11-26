@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { updateProfile } from "@/lib/actions/user-actions";
+
+import { ProfileForm } from "./_components/ProfileForm";
+
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -75,15 +74,7 @@ export default async function DashboardPage() {
               <CardTitle>账户设置</CardTitle>
               <CardDescription>管理您的账户信息。</CardDescription>
             </CardHeader>
-            <CardContent>
-              <form action={updateProfile} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">昵称</Label>
-                  <Input id="fullName" name="fullName" defaultValue={profile.full_name ?? ''} />
-                </div>
-                <Button type="submit">更新昵称</Button>
-              </form>
-            </CardContent>
+            <CardContent>              <ProfileForm fullName={profile.full_name} />            </CardContent>
           </Card>
         </div>
       </div>

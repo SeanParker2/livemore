@@ -1,91 +1,58 @@
-import { Metadata } from "next";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckIcon } from "@radix-ui/react-icons";
-
-export const metadata: Metadata = {
-  title: "订阅 - Livemore",
-  description: "投资你的大脑，加入 5,000+ 理性投资者，获取超额收益。",
-};
-
-const features = {
-  free: [
-    "每周一篇宏观市场简报",
-    "访问部分历史归档",
-    "加入读者交流群",
-  ],
-  pro: [
-    "解锁所有深度研报 (每周更新)",
-    "实盘持仓披露 & 买卖逻辑",
-    "专属高净值会员群",
-    "优先邮件支持",
-  ],
-};
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check } from "lucide-react";
+import Link from "next/link";
 
 export default function SubscribePage() {
   return (
-    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-          投资你的大脑
-        </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-xl text-muted-foreground">
-          加入 5,000+ 理性投资者，获取超额收益。
-        </p>
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">会员计划</h1>
+        <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">选择最适合您的方案，获取深度市场洞察。</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Free Plan */}
-        <div className="border rounded-lg p-8 flex flex-col">
-          <h2 className="text-2xl font-bold">免费订阅</h2>
-          <p className="mt-4 text-muted-foreground">适合想要初步了解我们的读者。</p>
-          <div className="mt-6">
-            <span className="text-4xl font-bold">¥0</span>
-            <span className="text-lg font-medium text-muted-foreground"> / 永久</span>
-          </div>
-          <ul className="mt-8 space-y-4">
-            {features.free.map((feature) => (
-              <li key={feature} className="flex items-center gap-3">
-                <CheckIcon className="h-5 w-5 text-green-500" />
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="grow" />
-          <Button asChild variant="outline" className="mt-8 w-full">
-            <Link href="/#newsletter">免费订阅</Link>
-          </Button>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>免费版</CardTitle>
+            <CardDescription>适合所有希望了解市场的投资者。</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-4xl font-bold">¥0<span className="text-lg font-normal text-muted-foreground">/永久</span></div>
+            <ul className="space-y-2">
+              <li className="flex items-center"><Check className="w-4 h-4 mr-2 text-green-500" />每周市场简报</li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full"><Link href="#newsletter-form">免费订阅</Link></Button>
+          </CardFooter>
+        </Card>
 
-        {/* Pro Plan */}
-        <div className="border-2 border-primary rounded-lg p-8 flex flex-col relative">
-          <div className="absolute top-0 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-1 text-sm font-semibold rounded-full">
-            推荐
-          </div>
-          <h2 className="text-2xl font-bold">年度会员</h2>
-          <p className="mt-4 text-muted-foreground">解锁全部内容，与顶尖投资者同行。</p>
-          <div className="mt-6">
-            <span className="text-4xl font-bold">¥299</span>
-            <span className="text-lg font-medium text-muted-foreground"> / 年</span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">每天不到 1 元</p>
-          <ul className="mt-8 space-y-4">
-            {features.pro.map((feature) => (
-              <li key={feature} className="flex items-center gap-3">
-                <CheckIcon className="h-5 w-5 text-green-500" />
-                <span className={feature.includes('解锁所有') ? 'font-semibold' : ''}>{feature}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="grow" />
-          <Button asChild className="mt-8 w-full">
-            <Link href="/login">立即升级</Link>
-          </Button>
-        </div>
+        {/* Annual Plan */}
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle>年度会员</CardTitle>
+            <CardDescription>解锁全部内容，获得最全面的分析。</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-4xl font-bold">¥299<span className="text-lg font-normal text-muted-foreground">/年</span></div>
+            <ul className="space-y-2">
+              <li className="flex items-center"><Check className="w-4 h-4 mr-2 text-green-500" />解锁所有深度研报</li>
+              <li className="flex items-center"><Check className="w-4 h-4 mr-2 text-green-500" />查看作者实盘披露</li>
+              <li className="flex items-center"><Check className="w-4 h-4 mr-2 text-green-500" />加入会员专属社群</li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full"><Link href="/login">立即升级</Link></Button>
+          </CardFooter>
+        </Card>
       </div>
 
-      <div className="text-center mt-12">
-        <p className="text-sm text-muted-foreground">30 天无理由退款保证 · 随时取消</p>
+      <div id="newsletter-form" className="mt-16 text-center">
+        <h2 className="text-3xl font-bold">订阅免费周报</h2>
+        <p className="text-muted-foreground mt-2">每周一，市场精华准时送达。</p>
+        {/* Newsletter form will be here */}
       </div>
     </div>
   );
