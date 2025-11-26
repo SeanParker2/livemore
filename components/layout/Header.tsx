@@ -84,6 +84,10 @@ export async function Header() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">用户中心</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <form action={signOut}>
                       <DropdownMenuItem asChild>
                         <button className="w-full text-left">退出登录</button>

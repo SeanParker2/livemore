@@ -76,7 +76,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </Avatar>
             <span>{post.author.full_name}</span>
           </div>
-          <span className="text-sm">{new Date(post.created_at).toLocaleDateString()}</span>
+          <span className="text-sm">{new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
         </div>
       </div>
 

@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -32,17 +31,17 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="text-center py-16">
         <h1 className={`text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground ${libreBaskerville.className}`}>
-          Invest Smarter, Live More.
+          理性投资，自在生活。
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-          Deep dive analysis into global markets, crypto assets, and macro trends.
+          深度解读全球市场、加密资产与宏观趋势。
         </p>
         <div className="mt-8 max-w-md mx-auto">
           <NewsletterForm />
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
           <Link href="/archive" className="underline hover:text-foreground">
-            Let me read it first
+            先看看文章 →
           </Link>
         </p>
       </section>
@@ -50,7 +49,7 @@ export default async function HomePage() {
       {/* Social Proof Section */}
       <section className="text-center py-8">
         <p className="text-sm text-muted-foreground">
-          Trusted by investors from Goldman Sachs, J.P. Morgan, and BlackRock.
+          深受来自高盛、摩根大通及贝莱德的专业投资者信赖。
         </p>
       </section>
 
@@ -100,7 +99,7 @@ export default async function HomePage() {
       {/* Recent Posts Feed */}
       <section className="py-16">
         <h2 className="text-3xl font-bold tracking-tight text-foreground mb-8">
-          Recent Posts
+          最新研报
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
           {recentPosts?.slice(0, 2).map((post) => (
@@ -119,15 +118,22 @@ export default async function HomePage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>{post.author.full_name}</span>
                     <span>•</span>
-                    <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                    <span>{new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
                     <span>•</span>
-                    <span>{Math.ceil(post.content.length / 500)} min read</span>
+                    <span>{Math.ceil(post.content.length / 500)} 分钟阅读</span>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground text-sm">
                     {post.summary}
                   </p>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {post.tags?.map((tag: any) => (
+                      <Link href={`/tags/${tag.slug}`} key={tag.id}>
+                        <Badge variant="outline">{tag.name}</Badge>
+                      </Link>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </Link>
@@ -152,9 +158,9 @@ export default async function HomePage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{post.author.full_name}</span>
                   <span>•</span>
-                  <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                  <span>{new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
                   <span>•</span>
-                  <span>{Math.ceil(post.content.length / 500)} min read</span>
+                  <span>{Math.ceil(post.content.length / 500)} 分钟阅读</span>
                 </div>
               </article>
             </Link>
@@ -164,3 +170,4 @@ export default async function HomePage() {
     </div>
   );
 }
+

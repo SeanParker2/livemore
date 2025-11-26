@@ -13,7 +13,7 @@ export async function subscribeToNewsletter(prevState: any, formData: FormData) 
   const validation = emailSchema.safeParse(email);
 
   if (!validation.success) {
-    return { success: false, message: 'Invalid email address.' };
+    return { success: false, message: '无效的邮箱地址。' };
   }
 
   const supabase = await createClient();
@@ -38,5 +38,5 @@ export async function subscribeToNewsletter(prevState: any, formData: FormData) 
     console.error('Resend error:', emailError);
   }
 
-  return { success: true, message: 'Thanks for subscribing!' };
+  return { success: true, message: '订阅成功！请检查您的邮箱以确认订阅。' };
 }

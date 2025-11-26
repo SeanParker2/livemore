@@ -18,7 +18,7 @@ function SubmitButton({ isDark }: { isDark?: boolean }) {
       size="lg"
       className={isDark ? 'h-12 text-base bg-white text-black hover:bg-stone-200' : 'h-12 text-base'}
     >
-      {pending ? 'Subscribing...' : 'Subscribe'}
+      {pending ? '订阅中...' : '订阅'}
     </Button>
   );
 }
