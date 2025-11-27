@@ -6,12 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Post } from "@/lib/types";
 import { MultiSelect } from "./MultiSelect";
 import { createClient } from "@/lib/supabase/client";
+import { uploadImage } from "@/lib/actions/image-actions";
+
+import MdEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
+import MarkdownIt from 'markdown-it';
+
+const mdParser = new MarkdownIt();
 
 const initialState = {
   success: false,
@@ -37,6 +45,7 @@ export function PostForm({ action, initialData }: PostFormProps) {
   const isEditing = !!initialData;
   const [tags, setTags] = useState<{ value: string; label: string }[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags?.map(t => t.id.toString()) || []);
+  const [content, setContent] = useState(initialData?.content || '');
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -58,6 +67,19 @@ export function PostForm({ action, initialData }: PostFormProps) {
       }
     }
   }, [state]);
+
+  async function handleImageUpload(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const result = await uploadImage(formData);
+      return result.publicUrl;
+    } catch (error) {
+      console.error(error);
+      toast.error("图片上传失败", { description: (error as Error).message });
+      return null;
+    }
+  }
 
   return (
     <form action={formAction} className="space-y-8">
@@ -97,13 +119,15 @@ export function PostForm({ action, initialData }: PostFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="content">正文 (支持 Markdown)</Label>
-        <Textarea
+        <input type="hidden" name="content" value={content} />
+        <MdEditor
           id="content"
-          name="content"
-          placeholder="在此处撰写您的完整分析。"
-          className="min-h-[500px] font-mono"
-          required
-          defaultValue={initialData?.content}
+          value={content}
+          style={{ height: '600px' }}
+          className="font-mono"
+          renderHTML={text => mdParser.render(text)}
+          onChange={({ text }) => setContent(text)}
+          onImageUpload={handleImageUpload}
         />
       </div>
 
@@ -116,9 +140,18 @@ export function PostForm({ action, initialData }: PostFormProps) {
         <Label htmlFor="is_premium">付费内容 (仅限订阅者)</Label>
       </div>
 
-      <div className="flex justify-end">
-        <SubmitButton isEditing={isEditing} />
-      </div>
+      <div className="mb-4 flex items-center space-x-2">
+          <Checkbox id="broadcast" name="broadcast_email" />
+          <label
+            htmlFor="broadcast"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            📧 发布后通过邮件推送给所有订阅者
+          </label>
+        </div>
+        <div className="flex justify-end">
+          <SubmitButton isEditing={isEditing} />
+        </div>
     </form>
   );
 }

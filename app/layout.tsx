@@ -32,6 +32,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
+import { Analytics } from "@vercel/analytics/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +59,7 @@ export default function RootLayout({
             <Footer />
           </div>
           <Toaster />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>

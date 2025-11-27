@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import slugify from "slugify";
+import { Resend } from "resend";
+import { NewPostEmail } from "@/components/emails/NewPostEmail";
 
 async function checkUserRole() {
   const supabase = await createClient();
@@ -21,6 +23,58 @@ async function checkUserRole() {
     throw new Error("User is not a founder");
   }
   return user;
+}
+
+async function broadcastNewPostEmail({
+  title,
+  summary,
+  slug,
+  is_premium,
+}: {
+  title: string;
+  summary: string;
+  slug: string;
+  is_premium: boolean;
+}) {
+  try {
+    const supabase = await createClient();
+    const { data: subscribers, error: subsError } = await supabase
+      .from("subscriptions")
+      .select("email")
+      .eq("status", "active");
+
+    if (subsError) throw subsError;
+    if (!subscribers || subscribers.length === 0) {
+      console.log("No active subscribers to broadcast to.");
+      return;
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const postUrl = `${baseUrl}/posts/${slug}`;
+
+    const batch = subscribers.map((subscriber: { email: string }) => ({
+      from: "Livemore <noreply@livemore.io>",
+      to: [subscriber.email],
+      subject: `新研报发布: ${title}`,
+      react: NewPostEmail({
+        postTitle: title,
+        postExcerpt: summary,
+        postUrl: postUrl,
+        isPremium: is_premium,
+      }),
+    }));
+
+    const { data, error } = await resend.batch.send(batch);
+
+    if (error) {
+      console.error("Failed to send broadcast emails:", error);
+    } else {
+      console.log("Broadcast emails sent successfully:", data);
+    }
+  } catch (error: any) {
+    console.error("Error in broadcastNewPostEmail:", error.message);
+  }
 }
 
 export async function createPost(prevState: any, formData: FormData) {
@@ -54,6 +108,16 @@ export async function createPost(prevState: any, formData: FormData) {
       const postTags = tagIds.map(tag_id => ({ post_id: post.id, tag_id }));
       const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
       if (tagsError) throw tagsError;
+    }
+
+    const broadcast = formData.get('broadcast_email') === 'on';
+    if (broadcast) {
+      broadcastNewPostEmail({
+        title: rawFormData.title,
+        summary: rawFormData.summary,
+        slug: rawFormData.slug,
+        is_premium: rawFormData.is_premium,
+      });
     }
 
     revalidatePath('/admin');
@@ -90,6 +154,19 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
       const postTags = tagIds.map(tag_id => ({ post_id: id, tag_id }));
       const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
       if (tagsError) throw tagsError;
+    }
+
+    const broadcast = formData.get('broadcast_email') === 'on';
+    if (broadcast) {
+      const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
+      if (post) {
+        broadcastNewPostEmail({
+          title: rawFormData.title,
+          summary: rawFormData.summary,
+          slug: post.slug,
+          is_premium: rawFormData.is_premium,
+        });
+      }
     }
 
     revalidatePath('/admin');

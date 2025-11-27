@@ -13,7 +13,7 @@ import {
 
 import { signOut } from "@/lib/actions/auth-actions";
 import { MobileNav } from "./MobileNav";
-import { Search } from "../Search";
+import { SiteSearch } from "@/components/SiteSearch";
 import { ThemeToggle } from "../ThemeToggle";
 
 
@@ -36,7 +36,7 @@ export async function Header() {
   return (
     <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="h-8 bg-primary text-primary-foreground flex items-center justify-center text-sm">
-        ✨ New Premium Analysis: The Future of Quantum Computing. Read Now →
+        ✨ 全新深度分析报告，马上领取 →
       </div>
       <header className="border-b border-border/40">
         <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -59,12 +59,7 @@ export async function Header() {
                 >
                   关于
                 </Link>
-                <Link
-                  href="/subscribe"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  订阅
-                </Link>
+
                 {billingStatus === 'founder' && (
                   <Link
                     href="/admin"
@@ -76,7 +71,7 @@ export async function Header() {
               </nav>
             </div>
             <div className="flex flex-1 items-center justify-end space-x-2">
-              <Search />
+              <SiteSearch />
               <ThemeToggle />
               <nav className="flex items-center gap-4">
                 {user ? (
