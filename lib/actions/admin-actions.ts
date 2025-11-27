@@ -96,6 +96,7 @@ export async function createPost(prevState: any, formData: FormData) {
       content: formData.get('content') as string,
       summary: formData.get('summary') as string,
       is_premium: formData.get('is_premium') === 'on',
+      status: formData.get('status') as string,
       author_id: user.id,
     };
 
@@ -111,7 +112,7 @@ export async function createPost(prevState: any, formData: FormData) {
     }
 
     const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast) {
+    if (broadcast && rawFormData.status === 'published') {
       broadcastNewPostEmail({
         title: rawFormData.title,
         summary: rawFormData.summary,
@@ -139,6 +140,7 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
       content: formData.get('content') as string,
       summary: formData.get('summary') as string,
       is_premium: formData.get('is_premium') === 'on',
+      status: formData.get('status') as string,
     };
 
     const { error } = await supabase.from('posts').update(rawFormData).eq('id', id);
@@ -157,7 +159,7 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
     }
 
     const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast) {
+    if (broadcast && rawFormData.status === 'published') {
       const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
       if (post) {
         broadcastNewPostEmail({

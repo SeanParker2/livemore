@@ -1,6 +1,10 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Check } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function SubscribePage() {
@@ -44,7 +48,27 @@ export default function SubscribePage() {
             </ul>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full"><Link href="/login">立即升级</Link></Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full">立即升级</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>开通年度会员</DialogTitle>
+                  <DialogDescription>
+                    请扫描上方二维码添加站长微信，备注【会员】，支付完成后将为您手动开通权限。
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 text-center">
+                  <div className="flex justify-center">
+                    <Image src="https://placehold.co/200x200?text=WeChat" alt="WeChat QR Code" width={200} height={200} />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <p className="text-sm text-muted-foreground">支持微信/支付宝。通常在 30 分钟内开通。</p>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardFooter>
         </Card>
       </div>

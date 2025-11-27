@@ -1,11 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PriceChart } from "@/components/ui/charts/price-chart";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ViewTracker } from "./_components/ViewTracker";
+import { RelatedPosts } from "@/components/RelatedPosts";
 
 export async function generateMetadata({
   params,
@@ -36,12 +37,29 @@ export default async function PostPage({ params }: { params: { slug: string } })
   const supabase = await createClient();
   const { data: post } = await supabase
     .from('posts')
-    .select('*, author:profiles(*)')
+    .select('*, author:profiles(*), tags(*)')
     .eq('slug', params.slug)
     .single();
 
   if (!post) {
     notFound();
+  }
+
+  // If the post is a draft, only allow founders to view it
+  if (post.status === 'draft') {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      notFound(); // Not logged in, so can't be a founder
+    }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('billing_status')
+      .eq('id', user.id)
+      .single();
+    
+    if (profile?.billing_status !== 'founder') {
+      notFound(); // Not a founder, so can't view draft
+    }
   }
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -66,6 +84,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
   return (
     <article className="container relative max-w-3xl py-12">
+      <ViewTracker slug={params.slug} />
       <div className="mx-auto text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-4">{post.title}</h1>
         <div className="flex items-center justify-center space-x-4 text-muted-foreground">
@@ -112,6 +131,10 @@ export default async function PostPage({ params }: { params: { slug: string } })
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {post.tags && post.tags.length > 0 && (
+        <RelatedPosts postId={post.id} tagIds={post.tags.map((tag: any) => tag.id)} />
       )}
     </article>
   );

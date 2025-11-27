@@ -86,7 +86,7 @@ export default async function AdminDashboard() {
                       {post.is_premium ? "付费" : "免费"}
                     </Badge>
                   </TableCell>
-                  <TableCell>1,234</TableCell> {/* Mocked data */}
+                  <TableCell>{post.views}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="ghost" size="icon" asChild>
                       <Link href={`/admin/posts/${post.slug}/edit`}>

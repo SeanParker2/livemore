@@ -7,6 +7,7 @@ export interface Post {
   slug: string;
   is_premium: boolean;
   summary: string;
+  status: 'draft' | 'published' | 'archived';
   author: Profile;
   tags: { id: number; name: string; slug: string }[];
 }

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -129,6 +130,20 @@ export function PostForm({ action, initialData }: PostFormProps) {
           onChange={({ text }) => setContent(text)}
           onImageUpload={handleImageUpload}
         />
+      </div>
+
+      <div className="space-y-3">
+        <Label className="text-base">发布状态</Label>
+        <RadioGroup defaultValue={initialData?.status || "draft"} name="status" className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="published" id="published" />
+            <Label htmlFor="published">✅ 直接发布</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="draft" id="draft" />
+            <Label htmlFor="draft">📝 存为草稿</Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <div className="flex items-center space-x-2">
