@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ThemeToggle } from '../ThemeToggle';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +44,7 @@ export function MobileNav({ isFounder }: MobileNavProps) {
               Livemore
             </Link>
           </div>
-          <nav className="flex-grow mt-6">
+          <nav className="grow mt-6">
             <ul className="space-y-4">
               {navLinks.map((link) => (
                 <li key={link.href}>
@@ -58,6 +59,9 @@ export function MobileNav({ isFounder }: MobileNavProps) {
               ))}
             </ul>
           </nav>
+          <div className="mt-auto">
+            <ThemeToggle />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

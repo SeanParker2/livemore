@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { subscribeToNewsletter } from '@/lib/actions/newsletter-actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ function SubmitButton({ isDark }: { isDark?: boolean }) {
 }
 
 export function NewsletterForm({ isDark = false }: { isDark?: boolean }) {
-  const [state, formAction] = useFormState(subscribeToNewsletter, initialState);
+  const [state, formAction] = useActionState(subscribeToNewsletter, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

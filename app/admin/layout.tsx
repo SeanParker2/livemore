@@ -24,7 +24,15 @@ export default async function AdminLayout({ children }: PropsWithChildren) {
     .single();
 
   if (profile?.billing_status !== "founder") {
-    return redirect("/");
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-center">
+        <h1 className="text-2xl font-bold mb-4">权限不足</h1>
+        <p className="text-muted-foreground mb-8">此区域仅限管理员访问。</p>
+        <Button asChild>
+          <Link href="/">返回首页</Link>
+        </Button>
+      </div>
+    );
   }
 
   return (

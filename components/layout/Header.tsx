@@ -13,6 +13,8 @@ import {
 
 import { signOut } from "@/lib/actions/auth-actions";
 import { MobileNav } from "./MobileNav";
+import { Search } from "../Search";
+import { ThemeToggle } from "../ThemeToggle";
 
 
 export async function Header() {
@@ -68,12 +70,14 @@ export async function Header() {
                     href="/admin"
                     className="font-semibold text-primary transition-colors hover:text-primary/80"
                   >
-                    创作
+                    管理后台
                   </Link>
                 )}
               </nav>
             </div>
             <div className="flex flex-1 items-center justify-end space-x-2">
+              <Search />
+              <ThemeToggle />
               <nav className="flex items-center gap-4">
                 {user ? (
                   <DropdownMenu>
