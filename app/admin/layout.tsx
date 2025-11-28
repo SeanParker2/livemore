@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 import { Button } from "@/components/ui/button";
-import { Home, Newspaper, Users, Settings } from "lucide-react";
+import { Home, Newspaper, Users, Settings, FileText, Download, Gift } from "lucide-react";
 
 export default async function AdminLayout({ children }: PropsWithChildren) {
   const supabase = await createClient();
@@ -43,6 +43,24 @@ export default async function AdminLayout({ children }: PropsWithChildren) {
             <Link href="/admin">
               <Home className="w-4 h-4" />
               仪表盘
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link href="/admin/posts">
+              <FileText className="w-4 h-4" />
+              文章管理
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link href="/admin/resources">
+              <Download className="w-4 h-4" />
+              资源管理
+            </Link>
+          </Button>
+          <Button variant="ghost" className="justify-start gap-2" asChild>
+            <Link href="/admin/gifts">
+              <Gift className="w-4 h-4" />
+              兑换码
             </Link>
           </Button>
           <Button variant="ghost" className="justify-start gap-2" asChild>

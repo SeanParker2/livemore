@@ -72,14 +72,14 @@ export function PostForm({ action, initialData }: PostFormProps) {
   async function handleImageUpload(file: File) {
     const formData = new FormData();
     formData.append('image', file);
-    try {
-      const result = await uploadImage(formData);
-      return result.publicUrl;
-    } catch (error) {
-      console.error(error);
-      toast.error("图片上传失败", { description: (error as Error).message });
-      return null;
+    const result = await uploadImage({ image: file });
+    if (result.data) {
+      return result.data.publicUrl;
     }
+    if (result.serverError) {
+      toast.error("图片上传失败", { description: result.serverError });
+    }
+    return null;
   }
 
   return (
@@ -92,6 +92,7 @@ export function PostForm({ action, initialData }: PostFormProps) {
           placeholder="例如：AI 在金融领域的未来"
           className="text-2xl h-14"
           required
+          minLength={1}
           defaultValue={initialData?.title}
         />
       </div>

@@ -1,14 +1,36 @@
-import { signInWithMagicLink } from "@/lib/actions/auth-actions";
+'use client';
+
+import { useAction } from 'next-safe-action/hooks';
+import { useEffect } from 'react';
+import { signInWithMagicLink, magicLinkSchema, returnSchemaMagicLink } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Metadata } from "next";
+import { toast } from 'sonner';
 
-export const metadata: Metadata = {
-  title: "登录 - Livemore",
-};
+// The metadata export has been removed as this is now a client component.
+// For SEO, consider moving this to a layout or a parent server component.
 
-export default function LoginPage({ searchParams }: { searchParams: { message: string } }) {
+export default function LoginPage() {
+  const { execute, status, result } = useAction<typeof magicLinkSchema, typeof returnSchemaMagicLink>(signInWithMagicLink);
+
+  useEffect(() => {
+    if (status === 'hasSucceeded' && result.data?.message) {
+      toast.success(result.data.message);
+    }
+
+    if (status === 'hasErrored' && result.serverError) {
+      toast.error(result.serverError);
+    }
+  }, [status, result]);
+
+  const isPending = status === 'executing';
+
+  const handleSubmit = (formData: FormData) => {
+    const email = formData.get('email') as string;
+    execute({ email });
+  };
+
   return (
     <div className="container mx-auto flex flex-col justify-center items-center min-h-[calc(100vh-200px)]">
       <div className="w-full max-w-sm p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md">
@@ -17,7 +39,7 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
           <p className="text-muted-foreground">专业投资者的每日必读。请输入邮箱登录或注册。</p>
         </div>
         
-        <form action={signInWithMagicLink} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email">邮箱地址</Label>
             <Input
@@ -29,14 +51,10 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
               className="h-12 text-base mt-1"
             />
           </div>
-          <Button type="submit" className="w-full h-12 text-base font-semibold">发送登录链接</Button>
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isPending}>
+            {isPending ? '发送中...' : '发送登录链接'}
+          </Button>
         </form>
-
-        {searchParams.message && (
-          <p className="text-center text-sm text-muted-foreground bg-muted p-3 rounded-md">
-            {searchParams.message}
-          </p>
-        )}
         
         <p className="text-center text-xs text-muted-foreground mt-4">
           🔒 我们尊重您的隐私。无密码登录，安全便捷。

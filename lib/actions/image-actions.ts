@@ -1,54 +1,37 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
+import { createSafeAction } from "@/lib/safe-action";
+import { z } from "zod";
 
-async function checkUserRole() {
+const imageSchema = z.object({
+  image: z.any().refine(file => file instanceof File, "No image file provided."),
+});
+
+const uploadImageHandler = async ({ image }: { image: File }) => {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("User not authenticated");
+  const path = `${Date.now()}-${image.name}`;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("billing_status")
-    .eq("id", user.id)
-    .single();
+  const { error: uploadError } = await supabase.storage
+    .from('images')
+    .upload(path, image);
 
-  if (profile?.billing_status !== 'founder') {
-    throw new Error("User is not a founder");
+  if (uploadError) {
+    console.error("Image upload failed:", uploadError.message);
+    return { serverError: uploadError.message };
   }
-  return user;
-}
 
-export async function uploadImage(formData: FormData): Promise<{ publicUrl: string }> {
-  try {
-    await checkUserRole();
-    const supabase = await createClient();
-    const file = formData.get('image') as File;
+  const { data } = supabase.storage.from('images').getPublicUrl(path);
 
-    if (!file) {
-      throw new Error("No image file provided.");
-    }
-
-    const path = `${Date.now()}-${file.name}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('images')
-      .upload(path, file);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { data } = supabase.storage.from('images').getPublicUrl(path);
-
-    if (!data || !data.publicUrl) {
-      throw new Error("Failed to get public URL for the uploaded image.");
-    }
-
-    return { publicUrl: data.publicUrl };
-
-  } catch (error: any) {
-    console.error("Image upload failed:", error.message);
-    throw new Error(error.message || "An unknown error occurred during image upload.");
+  if (!data || !data.publicUrl) {
+    return { serverError: "Failed to get public URL for the uploaded image." };
   }
-}
+
+  return { data: { publicUrl: data.publicUrl } };
+};
+
+export const uploadImage = createSafeAction(
+  imageSchema,
+  uploadImageHandler,
+  { role: 'admin' }
+);

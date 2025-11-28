@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -21,18 +22,61 @@ function SubmitButton() {
 }
 
 export default function CreateResourcePage() {
-  const [state, formAction] = useFormState(createResource, null);
-  const { toast } = useToast();
+  const router = useRouter();
 
-  useEffect(() => {
-    if (state?.message) {
-      toast({
-        title: state.success ? "成功" : "操作失败",
-        description: state.message,
-        variant: state.success ? "default" : "destructive",
-      });
+  const createResourceAction = async (formData: FormData) => {
+    const supabase = createClient();
+
+    const resourceFile = formData.get('file') as File;
+    const coverImageFile = formData.get('cover_image') as File | null;
+
+    if (!resourceFile || resourceFile.size === 0) {
+      toast.error("操作失败", { description: "资源文件不能为空" });
+      return;
     }
-  }, [state, toast]);
+
+    const resourceFilePath = `public/${Date.now()}-${resourceFile.name}`;
+    const { error: fileUploadError } = await supabase.storage
+      .from('resources')
+      .upload(resourceFilePath, resourceFile);
+
+    if (fileUploadError) {
+      toast.error("操作失败", { description: `资源文件上传失败: ${fileUploadError.message}` });
+      return;
+    }
+
+    let coverImagePath: string | null = null;
+    if (coverImageFile && coverImageFile.size > 0) {
+      const imagePath = `public/${Date.now()}-${coverImageFile.name}`;
+      const { error: imageUploadError } = await supabase.storage
+        .from('images')
+        .upload(imagePath, coverImageFile);
+
+      if (imageUploadError) {
+        toast.warning("提醒", { description: `封面图片上传失败: ${imageUploadError.message}` });
+      } else {
+        const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(imagePath);
+        coverImagePath = publicUrl;
+      }
+    }
+
+    const result = await createResource({
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      is_premium: formData.get('is_premium') === 'on',
+      file_path: resourceFilePath,
+      cover_image: coverImagePath,
+    });
+
+    if (result.validationError) {
+      // Handle validation errors
+    } else if (result.serverError) {
+      toast.error("操作失败", { description: result.serverError });
+    } else if (result.data) {
+      toast.success("成功", { description: result.data.message });
+      router.push('/admin/resources');
+    }
+  };
 
   return (
     <div className="container mx-auto max-w-2xl py-12">
@@ -42,10 +86,10 @@ export default function CreateResourcePage() {
           <CardDescription>上传文件并填写相关信息以创建新的可下载资源。</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-6">
+          <form action={createResourceAction} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="title">标题</Label>
-              <Input id="title" name="title" placeholder="例如：2024年宏观经济分析模型" required />
+              <Input id="title" name="title" placeholder="例如：2024年宏观经济分析模型" required minLength={2} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">描述</Label>

@@ -2,11 +2,21 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { createSafeAction } from '@/lib/safe-action'
 
-export async function signInWithMagicLink(formData: FormData) {
-  const email = formData.get('email') as string
+const magicLinkSchema = z.object({
+  email: z.string().email({ message: '无效的邮箱地址' }),
+})
+
+// 推断并导出 signInWithMagicLink 的类型
+export type InputTypeMagicLink = z.infer<typeof magicLinkSchema>;
+export const returnSchemaMagicLink = z.object({
+  message: z.string(),
+});
+
+const magicLinkHandler = async ({ email }: { email: string }) => {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithOtp({
@@ -17,13 +27,17 @@ export async function signInWithMagicLink(formData: FormData) {
   })
 
   if (error) {
-    // TODO: Handle error more gracefully (e.g., show a toast)
     console.error(error)
-    return redirect('/login?message=用户认证失败，请稍后重试')
+    return { serverError: '用户认证失败，请稍后重试' }
   }
 
-  return redirect('/login?message=Check email to continue sign in process')
+  return { data: { message: '请检查您的邮箱，点击链接以继续登录。' } }
 }
+
+export const signInWithMagicLink = createSafeAction(
+  magicLinkSchema,
+  magicLinkHandler
+)
 
 export async function signOut() {
   const supabase = await createClient()

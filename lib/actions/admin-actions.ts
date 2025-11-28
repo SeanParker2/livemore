@@ -1,4 +1,3 @@
-
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
@@ -7,23 +6,8 @@ import { redirect } from "next/navigation";
 import slugify from "slugify";
 import { Resend } from "resend";
 import { NewPostEmail } from "@/components/emails/NewPostEmail";
-
-async function checkUserRole() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("User not authenticated");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("billing_status")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.billing_status !== 'founder') {
-    throw new Error("User is not a founder");
-  }
-  return user;
-}
+import { requireAdmin } from "@/lib/auth-helpers";
+import { postSchema } from "@/lib/validations/schemas";
 
 async function broadcastNewPostEmail({
   title,
@@ -79,10 +63,27 @@ async function broadcastNewPostEmail({
 
 export async function createPost(prevState: any, formData: FormData) {
   try {
-    const user = await checkUserRole();
     const supabase = await createClient();
+    const auth = await requireAdmin(supabase);
+    if (!auth.success) {
+      return { success: false, message: auth.message };
+    }
+    const user = auth.user;
 
-    const title = formData.get('title') as string;
+    const rawData = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      summary: formData.get('summary'),
+      is_premium: formData.get('is_premium') === 'on',
+      status: formData.get('status'),
+    };
+
+    const validation = postSchema.safeParse(rawData);
+    if (!validation.success) {
+        return { success: false, message: validation.error.issues[0].message };
+    }
+    const { title, content, summary, is_premium, status } = validation.data;
+
     let slug = slugify(title, { lower: true, strict: true });
 
     const { data: existingPost } = await supabase.from('posts').select('slug').eq('slug', slug).single();
@@ -90,17 +91,15 @@ export async function createPost(prevState: any, formData: FormData) {
       slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
-    const rawFormData = {
+    const { data: post, error } = await supabase.from('posts').insert({
       title,
       slug,
-      content: formData.get('content') as string,
-      summary: formData.get('summary') as string,
-      is_premium: formData.get('is_premium') === 'on',
-      status: formData.get('status') as string,
+      content,
+      summary,
+      is_premium,
+      status,
       author_id: user.id,
-    };
-
-    const { data: post, error } = await supabase.from('posts').insert(rawFormData).select('id').single();
+    }).select('id').single();
 
     if (error || !post) throw error || new Error("Failed to create post.");
 
@@ -112,12 +111,12 @@ export async function createPost(prevState: any, formData: FormData) {
     }
 
     const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast && rawFormData.status === 'published') {
+    if (broadcast && status === 'published') {
       broadcastNewPostEmail({
-        title: rawFormData.title,
-        summary: rawFormData.summary,
-        slug: rawFormData.slug,
-        is_premium: rawFormData.is_premium,
+        title,
+        summary: summary || '',
+        slug,
+        is_premium,
       });
     }
 
@@ -132,18 +131,33 @@ export async function createPost(prevState: any, formData: FormData) {
 
 export async function updatePost(id: number, prevState: any, formData: FormData) {
   try {
-    await checkUserRole();
     const supabase = await createClient();
+    const auth = await requireAdmin(supabase);
+    if (!auth.success) {
+      return { success: false, message: auth.message };
+    }
 
-    const rawFormData = {
-      title: formData.get('title') as string,
-      content: formData.get('content') as string,
-      summary: formData.get('summary') as string,
+    const rawData = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      summary: formData.get('summary'),
       is_premium: formData.get('is_premium') === 'on',
-      status: formData.get('status') as string,
+      status: formData.get('status'),
     };
 
-    const { error } = await supabase.from('posts').update(rawFormData).eq('id', id);
+    const validation = postSchema.safeParse(rawData);
+    if (!validation.success) {
+        return { success: false, message: validation.error.issues[0].message };
+    }
+    const { title, content, summary, is_premium, status } = validation.data;
+
+    const { error } = await supabase.from('posts').update({
+      title,
+      content,
+      summary,
+      is_premium,
+      status
+    }).eq('id', id);
 
     if (error) throw error;
 
@@ -159,14 +173,14 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
     }
 
     const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast && rawFormData.status === 'published') {
+    if (broadcast && status === 'published') {
       const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
       if (post) {
         broadcastNewPostEmail({
-          title: rawFormData.title,
-          summary: rawFormData.summary,
+          title,
+          summary: summary || '',
           slug: post.slug,
-          is_premium: rawFormData.is_premium,
+          is_premium,
         });
       }
     }
@@ -183,8 +197,11 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
 
 export async function deletePost(id: number) {
   try {
-    await checkUserRole();
     const supabase = await createClient();
+    const auth = await requireAdmin(supabase);
+    if (!auth.success) {
+      return { success: false, message: auth.message };
+    }
 
     const { error } = await supabase.from('posts').delete().eq('id', id);
 

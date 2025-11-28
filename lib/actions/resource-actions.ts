@@ -2,132 +2,125 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { requireAdmin, requireUser } from "@/lib/auth-helpers";
+import { createResourceSchema } from "@/lib/validations/schemas";
+import { createSafeAction } from "@/lib/safe-action";
 
-export async function createResource(prevState: { success: boolean; message: string; } | null, formData: FormData) {
+const createResourceHandler = async (data: any) => {
   const supabase = await createClient();
+  const { title, description, is_premium, file_path, cover_image } = data;
 
-  // 1. 验证用户权限
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { success: false, message: "未登录用户" };
-  }
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('billing_status')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.billing_status !== 'founder') {
-    return { success: false, message: "无权操作" };
-  }
-
-  // 2. 获取表单数据
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const is_premium = formData.get('is_premium') === 'on';
-  const resourceFile = formData.get('file') as File;
-  const coverImageFile = formData.get('cover_image') as File | null;
-
-  if (!title || !resourceFile || resourceFile.size === 0) {
-    return { success: false, message: "标题和资源文件不能为空" };
-  }
-
-  // 3. 上传资源文件
-  const resourceFilePath = `public/${Date.now()}-${resourceFile.name}`;
-  const { error: fileUploadError } = await supabase.storage
-    .from('resources') // 确保你有一个名为 'resources' 的 bucket
-    .upload(resourceFilePath, resourceFile);
-
-  if (fileUploadError) {
-    console.error("资源文件上传失败:", fileUploadError);
-    return { success: false, message: `资源文件上传失败: ${fileUploadError.message}` };
-  }
-
-  // 4. (可选) 上传封面图片
-  let coverImagePath: string | undefined = undefined;
-  if (coverImageFile && coverImageFile.size > 0) {
-    const imagePath = `public/${Date.now()}-${coverImageFile.name}`;
-    const { error: imageUploadError } = await supabase.storage
-      .from('images')
-      .upload(imagePath, coverImageFile);
-
-    if (imageUploadError) {
-      console.warn("封面图片上传失败:", imageUploadError);
-      // 不中断流程，封面是可选的
-    } else {
-      const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(imagePath);
-      coverImagePath = publicUrl;
-    }
-  }
-
-  // 5. 插入数据到 resources 表
   const { error: dbError } = await supabase.from('resources').insert({
     title,
     description,
     is_premium,
-    file_path: resourceFilePath,
-    cover_image: coverImagePath,
+    file_path,
+    cover_image,
   });
 
   if (dbError) {
     console.error("数据库插入失败:", dbError);
-    return { success: false, message: `数据库插入失败: ${dbError.message}` };
+    return { serverError: `数据库插入失败: ${dbError.message}` };
   }
 
-  // 6. 成功后，清理缓存并重定向
   revalidatePath('/admin/resources');
   revalidatePath('/resources');
-  redirect('/admin/resources'); // 假设你将有一个后台资源列表页
-}
+  return { data: { message: "资源创建成功！" } };
+};
 
-export async function downloadResource(resourceId: string) {
+export const createResource = createSafeAction(
+  createResourceSchema,
+  createResourceHandler,
+  { role: 'admin' }
+);
+
+const downloadResourceHandler = async (resourceId: string) => {
     const supabase = await createClient();
-
-    // 1. 验证用户
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        return { success: false, message: "请先登录" };
+    const auth = await requireUser(supabase);
+    if (!auth.success) {
+        return { serverError: auth.message };
     }
+    const { profile } = auth;
 
-    // 2. 获取资源信息和用户会员状态
-    const { data: resource } = await supabase
-        .from('resources')
-        .select('*, profile:profiles!inner(billing_status)')
-        .eq('id', resourceId)
-        .eq('profile.id', user.id)
-        .single();
-        
     const { data: resourceData } = await supabase
         .from('resources')
         .select('*')
         .eq('id', resourceId)
         .single();
 
-
     if (!resourceData) {
-        return { success: false, message: "资源不存在" };
+        return { serverError: "资源不存在" };
     }
 
-    // 3. 检查下载权限
-    const canDownload = !resourceData.is_premium || resource?.profile?.billing_status === 'premium' || resource?.profile?.billing_status === 'founder';
+    const isVip = profile?.billing_status === 'premium' || profile?.billing_status === 'founder';
+    const canDownload = !resourceData.is_premium || isVip;
 
     if (!canDownload) {
-        return { success: false, message: "订阅会员专享资源" };
+        return { serverError: "订阅会员专享资源" };
     }
 
-    // 4. 生成安全的临时下载链接
     const { data, error } = await supabase.storage
         .from('resources')
-        .createSignedUrl(resourceData.file_path, 60); // 链接 60 秒内有效
+        .createSignedUrl(resourceData.file_path, 60);
 
     if (error) {
         console.error("生成下载链接失败:", error);
-        return { success: false, message: "无法获取下载链接" };
+        return { serverError: "无法获取下载链接" };
     }
 
-    // 5. 增加下载计数
     await supabase.rpc('increment_resource_download', { p_resource_id: resourceId });
 
-    return { success: true, url: data.signedUrl };
-}
+    return { data: { url: data.signedUrl } };
+};
+
+export const downloadResource = createSafeAction(
+    z.string(),
+    downloadResourceHandler,
+    { role: 'user' }
+);
+
+import { z } from "zod";
+
+const deleteResourceHandler = async (id: string) => {
+  const supabase = await createClient();
+
+  // 1. 获取资源信息以获取文件路径
+  const { data: resource, error: fetchError } = await supabase
+    .from('resources')
+    .select('file_path')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !resource) {
+    return { serverError: "资源不存在或已被删除" };
+  }
+
+  // 2. 从存储桶删除文件
+  if (resource.file_path) {
+    const { error: storageError } = await supabase.storage
+      .from('resources')
+      .remove([resource.file_path]);
+    
+    if (storageError) {
+      console.error("Failed to delete file from storage:", storageError);
+      // 继续执行，即使文件删除失败也要删除数据库记录
+    }
+  }
+
+  // 3. 删除数据库记录
+  const { error: dbError } = await supabase.from('resources').delete().eq('id', id);
+
+  if (dbError) {
+    return { serverError: `删除失败: ${dbError.message}` };
+  }
+
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
+  return { data: { message: "资源已成功删除" } };
+};
+
+export const deleteResource = createSafeAction(
+  z.string(),
+  deleteResourceHandler,
+  { role: 'admin' }
+);
