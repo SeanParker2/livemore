@@ -1,5 +1,5 @@
 import { createSafeActionClient } from 'next-safe-action';
-import { requireUser, requireAdmin } from '@/lib/auth-helpers';
+import { requireUser } from '@/lib/auth-helpers';
 import { createClient } from '@/lib/supabase/server';
 
 class ActionError extends Error {

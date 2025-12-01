@@ -24,14 +24,14 @@ export function DeletePostButton({ postId }: { postId: number }) {
   async function handleDelete() {
     setLoading(true);
     try {
-      const result = await deletePost(postId);
-      if (result.success) {
-        toast.success(result.message);
+      const result = await deletePost({ id: postId });
+      if (result.data?.success) {
+        toast.success(result.data.success);
         setOpen(false);
       } else {
-        toast.error(result.message);
+        toast.error(result.serverError || "删除失败");
       }
-    } catch (error) {
+    } catch {
       toast.error("删除失败，请稍后重试");
     } finally {
       setLoading(false);

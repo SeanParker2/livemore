@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { PlusCircle, Edit, Download } from "lucide-react";
+import { PlusCircle, Download } from "lucide-react";
 import { DeleteResourceButton } from "../_components/DeleteResourceButton";
 import { Search } from "../_components/Search";
 import { Pagination } from "@/components/ui/pagination";

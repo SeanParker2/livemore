@@ -15,8 +15,7 @@ import { MultiSelect } from "./MultiSelect";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/actions/image-actions";
 import { useAction } from 'next-safe-action/hooks';
-import { type SafeAction } from 'next-safe-action';
-import type { z } from 'zod';
+import { type SafeActionFn } from 'next-safe-action';
 
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -34,7 +33,7 @@ function SubmitButton({ isEditing, isExecuting }: { isEditing: boolean; isExecut
 
 interface PostFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  action: any;
+  action: SafeActionFn<any, any, any, any, any>;
   initialData?: Post | null;
 }
 
@@ -45,20 +44,22 @@ export function PostForm({ action, initialData }: PostFormProps) {
   const [content, setContent] = useState(initialData?.content || '');
 
   const { execute, status } = useAction(action, {
-    onSuccess: (data) => {
-      if (data?.success) {
-        toast.success("操作成功!", { description: data.message });
+    onSuccess: ({ data }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = data as any;
+      if (result?.success) {
+        toast.success("操作成功!", { description: result.success });
       } else {
-        toast.error("操作失败", { description: data?.message || "未知错误" });
+        toast.error("操作失败", { description: "未知错误" });
       }
     },
-    onError: (error) => {
+    onError: ({ error }) => {
       let description = "发生未知错误";
       if (error.serverError) {
         description = error.serverError;
       } else if (error.validationErrors) {
         const firstError = Object.values(error.validationErrors).flat().shift();
-        description = firstError || "请检查您输入的内容。";
+        description = (firstError as string) || "请检查您输入的内容。";
       }
       toast.error("操作失败", { description });
     }
@@ -79,8 +80,8 @@ export function PostForm({ action, initialData }: PostFormProps) {
     const formData = new FormData();
     formData.append('image', file);
     const result = await uploadImage({ image: file });
-    if (result.data) {
-      return result.data.publicUrl;
+    if (result.data?.success) {
+      return result.data.success;
     }
     if (result.serverError) {
       toast.error("图片上传失败", { description: result.serverError });

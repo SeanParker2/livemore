@@ -32,7 +32,7 @@ export default function AdminGiftsPage() {
   }
 
   const { execute, status } = useAction(generateCodes, {
-    onSuccess: (data) => {
+    onSuccess: ({ data }) => {
       if (data && "success" in data && data.success) {
         toast.success("成功", { description: data.success });
         fetchCodes();

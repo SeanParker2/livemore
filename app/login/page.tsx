@@ -1,7 +1,7 @@
 'use client';
 
 import { useAction } from 'next-safe-action/hooks';
-import { signInWithMagicLink, magicLinkSchema } from "@/lib/actions/auth-actions";
+import { signInWithMagicLink } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

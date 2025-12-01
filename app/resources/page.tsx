@@ -30,6 +30,7 @@ export default async function ResourcesPage() {
         {resources.map((resource) => (
           <Card key={resource.id} className="flex flex-col">
             <CardHeader>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={resource.cover_image} alt={resource.title} className="w-full h-48 object-cover rounded-t-lg" />
               <CardTitle className="mt-4">{resource.title}</CardTitle>
               <CardDescription>{resource.description}</CardDescription>
