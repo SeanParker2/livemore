@@ -1,8 +1,7 @@
 'use client';
 
 import { useAction } from 'next-safe-action/hooks';
-import { useEffect } from 'react';
-import { redeemCode, redeemCodeSchema, returnSchemaRedeem } from '@/lib/actions/redemption-actions';
+import { redeemCode } from '@/lib/actions/redemption-actions';
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,17 +13,18 @@ function SubmitButton({ isPending }: { isPending: boolean }) {
 }
 
 export default function RedeemPage() {
-  const { execute, status, result } = useAction<typeof redeemCodeSchema, typeof returnSchemaRedeem>(redeemCode);
-
-  useEffect(() => {
-    if (status === 'hasSucceeded' && result.data?.message) {
-      toast.success("兑换成功！", { description: result.data.message });
-    }
-
-    if (status === 'hasErrored' && result.serverError) {
-      toast.error("兑换失败", { description: result.serverError });
-    }
-  }, [status, result]);
+  const { execute, status } = useAction(redeemCode, {
+    onSuccess: ({ data }) => {
+      if (data?.success) {
+        toast.success("兑换成功！", { description: data.success });
+      }
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        toast.error("兑换失败", { description: error.serverError });
+      }
+    },
+  });
 
   const isPending = status === 'executing';
 

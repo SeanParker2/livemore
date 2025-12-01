@@ -27,18 +27,19 @@ export default function AdminGiftsPage() {
     fetchCodes();
   }, []);
 
-  const { execute, status, result } = useAction<typeof generateCodesSchema, typeof returnSchemaGenerate>(generateCodes);
-
-  useEffect(() => {
-    if (status === 'hasSucceeded' && result.data?.message) {
-      toast.success("成功", { description: result.data.message });
-      fetchCodes();
-    }
-
-    if (status === 'hasErrored' && result.serverError) {
-      toast.error("操作失败", { description: result.serverError });
-    }
-  }, [status, result]);
+  const { execute, status } = useAction(generateCodes, {
+    onSuccess: ({ data }) => {
+      if (data) {
+        toast.success("成功", { description: data });
+        fetchCodes();
+      }
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        toast.error("操作失败", { description: error.serverError });
+      }
+    },
+  });
 
   const isPending = status === 'executing';
 

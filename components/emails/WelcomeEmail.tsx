@@ -13,13 +13,11 @@ import {
 } from "@react-email/components";
 import * as React from "react";
 
-interface WelcomeEmailProps {
-  firstName?: string;
-}
+interface WelcomeEmailProps {}
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-export const WelcomeEmail = ({ firstName = "朋友" }: WelcomeEmailProps) => (
+export const WelcomeEmail = () => (
   <Html>
     <Head />
     <Preview>感谢订阅！这里是您需要的市场深度分析。</Preview>

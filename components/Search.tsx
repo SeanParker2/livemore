@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
-import { Command as CommandPrimitive } from 'cmdk';
 import { Search as SearchIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';

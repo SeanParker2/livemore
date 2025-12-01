@@ -8,6 +8,18 @@ interface RelatedPostsProps {
   tagIds: number[];
 }
 
+type Tag = {
+  slug: string;
+  name: string;
+};
+
+type Post = {
+  slug: string;
+  title: string;
+  created_at: string;
+  tags: Tag[];
+};
+
 export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
   const relatedPosts = await getRelatedPosts(postId, tagIds);
 
@@ -19,7 +31,7 @@ export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
     <div className="mt-16">
       <h2 className="text-2xl font-bold mb-6">延伸阅读</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {relatedPosts.map((post: any) => (
+        {relatedPosts.map((post: Post) => (
           <Link href={`/posts/${post.slug}`} key={post.slug}>
             <Card className="h-full flex flex-col group hover:border-primary transition-colors">
               <CardHeader>
@@ -29,7 +41,7 @@ export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                   <div className="flex gap-2">
-                    {post.tags.slice(0, 2).map((tag: any) => (
+                    {post.tags.slice(0, 2).map((tag: Tag) => (
                       <Badge key={tag.slug} variant="secondary">{tag.name}</Badge>
                     ))}
                   </div>

@@ -1,28 +1,25 @@
 'use client';
 
 import { useAction } from 'next-safe-action/hooks';
-import { useEffect } from 'react';
-import { signInWithMagicLink, magicLinkSchema, returnSchemaMagicLink } from "@/lib/actions/auth-actions";
+import { signInWithMagicLink, magicLinkSchema } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 
-// The metadata export has been removed as this is now a client component.
-// For SEO, consider moving this to a layout or a parent server component.
-
 export default function LoginPage() {
-  const { execute, status, result } = useAction<typeof magicLinkSchema, typeof returnSchemaMagicLink>(signInWithMagicLink);
-
-  useEffect(() => {
-    if (status === 'hasSucceeded' && result.data?.message) {
-      toast.success(result.data.message);
-    }
-
-    if (status === 'hasErrored' && result.serverError) {
-      toast.error(result.serverError);
-    }
-  }, [status, result]);
+  const { execute, status } = useAction(signInWithMagicLink, {
+    onSuccess: ({ data }) => {
+      if (data?.success) {
+        toast.success("发送成功", { description: data.success });
+      }
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        toast.error("发送失败", { description: error.serverError });
+      }
+    },
+  });
 
   const isPending = status === 'executing';
 

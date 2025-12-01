@@ -33,6 +33,12 @@ export async function generateMetadata({
   };
 }
 
+type Tag = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
   const { data: post } = await supabase
@@ -134,7 +140,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
       )}
 
       {post.tags && post.tags.length > 0 && (
-        <RelatedPosts postId={post.id} tagIds={post.tags.map((tag: any) => tag.id)} />
+        <RelatedPosts postId={post.id} tagIds={post.tags.map((tag: Tag) => tag.id)} />
       )}
     </article>
   );

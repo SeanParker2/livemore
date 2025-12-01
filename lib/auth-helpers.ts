@@ -1,4 +1,10 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, User } from '@supabase/supabase-js';
+
+export type Profile = {
+  id: string;
+  billing_status: string;
+  // Add other profile properties here
+};
 
 export async function getCurrentUser(supabase: SupabaseClient) {
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -6,7 +12,7 @@ export async function getCurrentUser(supabase: SupabaseClient) {
   return user;
 }
 
-export async function getProfile(supabase: SupabaseClient, userId: string) {
+export async function getProfile(supabase: SupabaseClient, userId: string): Promise<Profile | null> {
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -16,7 +22,7 @@ export async function getProfile(supabase: SupabaseClient, userId: string) {
 }
 
 export type AuthResult = 
-  | { success: true; user: any; profile: any }
+  | { success: true; user: User; profile: Profile | null }
   | { success: false; message: string };
 
 export async function requireAdmin(supabase: SupabaseClient): Promise<AuthResult> {

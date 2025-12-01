@@ -1,7 +1,6 @@
 
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { Libre_Baskerville } from 'next/font/google';
 import Link from "next/link";
@@ -10,6 +9,21 @@ const libreBaskerville = Libre_Baskerville({
   subsets: ['latin'],
   weight: '700',
 });
+
+type Author = {
+  full_name: string;
+};
+
+type Post = {
+  id: number;
+  slug: string;
+  title: string;
+  is_premium: boolean;
+  summary: string;
+  author: Author;
+  created_at: string;
+  content: string;
+};
 
 export default async function TagPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
@@ -31,7 +45,7 @@ export default async function TagPage({ params }: { params: { slug: string } }) 
           #{tag.name}
         </h1>
         <div className="space-y-8 mt-8">
-          {tag.posts.map((post: any) => (
+          {tag.posts.map((post: Post) => (
             <Link href={`/posts/${post.slug}`} key={post.id} className="block group">
               <article>
                 <div className="flex items-center justify-between mb-2">

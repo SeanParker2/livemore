@@ -9,8 +9,12 @@ export async function incrementView(slug: string) {
     if (error) {
       console.error(`Failed to increment view count for slug: ${slug}`, error);
     }
-  } catch (error: any) {
-    console.error("Error calling incrementView RPC:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error calling incrementView RPC:", error.message);
+    } else {
+      console.error("An unknown error occurred in incrementView RPC:", error);
+    }
   }
 }
 

@@ -1,9 +1,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { downloadResource } from "@/lib/actions/resource-actions";
-import { toast } from "@/components/ui/use-toast";
 import ResourceDownloadButton from "./ResourceDownloadButton";
 
 export default async function ResourcesPage() {

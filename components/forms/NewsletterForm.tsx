@@ -1,10 +1,10 @@
 'use client';
 
 import { useAction } from 'next-safe-action/hooks';
-import { subscribeToNewsletter, subscribeSchema, returnSchemaSubscribe } from '@/lib/actions/newsletter-actions';
+import { subscribeToNewsletter } from '@/lib/actions/newsletter-actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { toast } from 'sonner';
 
 function SubmitButton({ isDark, isPending }: { isDark?: boolean, isPending: boolean }) {
@@ -23,23 +23,22 @@ function SubmitButton({ isDark, isPending }: { isDark?: boolean, isPending: bool
 
 export function NewsletterForm({ isDark = false }: { isDark?: boolean }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const { execute, result, status } = useAction<typeof subscribeSchema, typeof returnSchemaSubscribe>(subscribeToNewsletter);
-
-  useEffect(() => {
-    if (status === 'hasSucceeded' && result.data?.message) {
-      toast.success(result.data.message);
-      formRef.current?.reset();
-    }
-
-    if (status === 'hasErrored') {
-      if (result.serverError) {
-        toast.error(result.serverError);
+  const { execute, status } = useAction(subscribeToNewsletter, {
+    onSuccess: ({ data }) => {
+      if (data?.success) {
+        toast.success("订阅成功", { description: data.success });
+        formRef.current?.reset();
       }
-      if (result.validationError?.email) {
-        toast.error(result.validationError.email[0]);
+    },
+    onError: ({ error }) => {
+      if (error.serverError) {
+        toast.error("订阅失败", { description: error.serverError });
       }
-    }
-  }, [status, result]);
+      if (error.validationErrors?.email?._errors) {
+        toast.error("邮箱地址无效", { description: error.validationErrors.email._errors[0] });
+      }
+    },
+  });
 
   const isPending = status === 'executing';
 

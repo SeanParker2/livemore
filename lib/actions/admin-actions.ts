@@ -1,12 +1,12 @@
 'use server';
 
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import slugify from "slugify";
 import { Resend } from "resend";
 import { NewPostEmail } from "@/components/emails/NewPostEmail";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { adminAction } from "@/lib/safe-action";
 import { postSchema } from "@/lib/validations/schemas";
 
 async function broadcastNewPostEmail({
@@ -56,33 +56,23 @@ async function broadcastNewPostEmail({
     } else {
       console.log("Broadcast emails sent successfully:", data);
     }
-  } catch (error: any) {
-    console.error("Error in broadcastNewPostEmail:", error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+        console.error("Error in broadcastNewPostEmail:", error.message);
+    } else {
+        console.error("An unknown error occurred in broadcastNewPostEmail");
+    }
   }
 }
 
-export async function createPost(prevState: any, formData: FormData) {
-  try {
+export const createPost = adminAction
+  .schema(postSchema.extend({
+    tags: z.string().optional(),
+    broadcast_email: z.boolean().optional(),
+  }))
+  .action(async ({ parsedInput, ctx: { user } }) => {
     const supabase = await createClient();
-    const auth = await requireAdmin(supabase);
-    if (!auth.success) {
-      return { success: false, message: auth.message };
-    }
-    const user = auth.user;
-
-    const rawData = {
-      title: formData.get('title'),
-      content: formData.get('content'),
-      summary: formData.get('summary'),
-      is_premium: formData.get('is_premium') === 'on',
-      status: formData.get('status'),
-    };
-
-    const validation = postSchema.safeParse(rawData);
-    if (!validation.success) {
-        return { success: false, message: validation.error.issues[0].message };
-    }
-    const { title, content, summary, is_premium, status } = validation.data;
+    const { title, content, summary, is_premium, status, tags } = parsedInput;
 
     let slug = slugify(title, { lower: true, strict: true });
 
@@ -103,16 +93,17 @@ export async function createPost(prevState: any, formData: FormData) {
 
     if (error || !post) throw error || new Error("Failed to create post.");
 
-    const tagIds = (formData.get('tags') as string).split(',').filter(Boolean).map(Number);
-    if (tagIds.length > 0) {
-      const postTags = tagIds.map(tag_id => ({ post_id: post.id, tag_id }));
-      const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-      if (tagsError) throw tagsError;
+    if (tags) {
+      const tagIds = tags.split(',').filter(Boolean).map(Number);
+      if (tagIds.length > 0) {
+        const postTags = tagIds.map((tag_id: number) => ({ post_id: post.id, tag_id }));
+        const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
+        if (tagsError) throw tagsError;
+      }
     }
 
-    const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast && status === 'published') {
-      broadcastNewPostEmail({
+    if (parsedInput.broadcast_email && status === 'published') {
+      await broadcastNewPostEmail({
         title,
         summary: summary || '',
         slug,
@@ -122,34 +113,18 @@ export async function createPost(prevState: any, formData: FormData) {
 
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
-    return { success: true, message: "文章已成功发布！" };
+    return { success: "文章已成功发布！" };
+  });
 
-  } catch (error: any) {
-    return { success: false, message: error.message || "创建文章时发生错误。" };
-  }
-}
-
-export async function updatePost(id: number, prevState: any, formData: FormData) {
-  try {
+export const updatePost = adminAction
+  .schema(postSchema.extend({
+    id: z.number(),
+    tags: z.string().optional(),
+    broadcast_email: z.boolean().optional(),
+  }))
+  .action(async ({ parsedInput }) => {
     const supabase = await createClient();
-    const auth = await requireAdmin(supabase);
-    if (!auth.success) {
-      return { success: false, message: auth.message };
-    }
-
-    const rawData = {
-      title: formData.get('title'),
-      content: formData.get('content'),
-      summary: formData.get('summary'),
-      is_premium: formData.get('is_premium') === 'on',
-      status: formData.get('status'),
-    };
-
-    const validation = postSchema.safeParse(rawData);
-    if (!validation.success) {
-        return { success: false, message: validation.error.issues[0].message };
-    }
-    const { title, content, summary, is_premium, status } = validation.data;
+    const { id, title, content, summary, is_premium, status, tags } = parsedInput;
 
     const { error } = await supabase.from('posts').update({
       title,
@@ -165,18 +140,20 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
     const { error: deleteTagsError } = await supabase.from('post_tags').delete().eq('post_id', id);
     if (deleteTagsError) throw deleteTagsError;
 
-    const tagIds = (formData.get('tags') as string).split(',').filter(Boolean).map(Number);
-    if (tagIds.length > 0) {
-      const postTags = tagIds.map(tag_id => ({ post_id: id, tag_id }));
-      const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-      if (tagsError) throw tagsError;
+    if (tags) {
+        const tagIds = tags.split(',').filter(Boolean).map(Number);
+        if (tagIds.length > 0) {
+          const postTags = tagIds.map((tag_id: number) => ({ post_id: id, tag_id }));
+          const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
+          if (tagsError) throw tagsError;
+        }
     }
 
-    const broadcast = formData.get('broadcast_email') === 'on';
-    if (broadcast && status === 'published') {
+
+    if (parsedInput.broadcast_email && status === 'published') {
       const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
       if (post) {
-        broadcastNewPostEmail({
+        await broadcastNewPostEmail({
           title,
           summary: summary || '',
           slug: post.slug,
@@ -188,30 +165,18 @@ export async function updatePost(id: number, prevState: any, formData: FormData)
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
     revalidatePath(`/posts/[slug]`, 'page');
-    return { success: true, message: "文章已成功更新！" };
+    return { success: "文章已成功更新！" };
+  });
 
-  } catch (error: any) {
-    return { success: false, message: error.message || "更新文章时发生错误。" };
-  }
-}
+export const deletePost = adminAction
+    .schema(z.object({ id: z.number() }))
+    .action(async ({ parsedInput: { id } }) => {
+        const supabase = await createClient();
+        const { error } = await supabase.from('posts').delete().eq('id', id);
 
-export async function deletePost(id: number) {
-  try {
-    const supabase = await createClient();
-    const auth = await requireAdmin(supabase);
-    if (!auth.success) {
-      return { success: false, message: auth.message };
-    }
+        if (error) throw error;
 
-    const { error } = await supabase.from('posts').delete().eq('id', id);
-
-    if (error) throw error;
-
-    revalidatePath('/admin');
-    revalidatePath('/', 'layout');
-    return { success: true, message: "文章已成功删除。" };
-
-  } catch (error: any) {
-    return { success: false, message: error.message || "删除文章时发生错误。" };
-  }
-}
+        revalidatePath('/admin');
+        revalidatePath('/', 'layout');
+        return { success: "文章已成功删除。" };
+    });

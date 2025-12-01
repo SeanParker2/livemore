@@ -1,44 +1,49 @@
-import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createSafeActionClient } from 'next-safe-action';
 import { requireUser, requireAdmin } from '@/lib/auth-helpers';
-import { User } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 
-export type ActionState<TInput, TOutput> = {
-  validationError?: Partial<Record<keyof TInput, string[]>>;
-  serverError?: string;
-  data?: TOutput;
+class ActionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ActionError';
+  }
+}
+
+const handleServerError = (e: Error) => {
+  if (e instanceof ActionError) {
+    return e.message;
+  }
+  return 'An unexpected error occurred.';
 };
 
-type AuthRequirements = { role: 'user' | 'admin' };
+export const publicAction = createSafeActionClient({
+  handleServerError,
+});
 
-export const createSafeAction = <TInput, TOutput>(
-  schema: z.Schema<TInput>,
-  handler: (validatedInput: TInput, user?: User) => Promise<ActionState<TInput, TOutput>>,
-  auth?: AuthRequirements
-) => {
-  return async (input: TInput): Promise<ActionState<TInput, TOutput>> => {
-    const supabase = await createClient();
-    let user: User | undefined = undefined;
+export const userAction = publicAction.use(async ({ next }) => {
+  const supabase = await createClient();
+  const authCheck = await requireUser(supabase);
+  if (!authCheck.success) {
+    throw new ActionError(authCheck.message);
+  }
+  return next({
+    ctx: {
+      user: authCheck.user,
+      profile: authCheck.profile,
+    },
+  });
+});
 
-    if (auth) {
-      const authCheck = auth.role === 'admin' 
-        ? await requireAdmin(supabase)
-        : await requireUser(supabase);
-
-      if (!authCheck.success) {
-        return { serverError: authCheck.message };
-      }
-      user = authCheck.user;
-    }
-
-    const validationResult = schema.safeParse(input);
-
-    if (!validationResult.success) {
-      const validationError = validationResult.error.flatten()
-        .fieldErrors as Partial<Record<keyof TInput, string[]>>;
-      return { validationError };
-    }
-
-    return handler(validationResult.data, user);
-  };
-};
+export const adminAction = userAction.use(async ({ ctx, next }) => {
+  const supabase = await createClient();
+  const authCheck = await requireAdmin(supabase);
+  if (!authCheck.success) {
+    throw new ActionError(authCheck.message);
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: authCheck.user,
+    },
+  });
+});
