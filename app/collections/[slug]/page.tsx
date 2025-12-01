@@ -30,6 +30,21 @@ export async function generateMetadata({
   };
 }
 
+interface Tag {
+  slug: string;
+  name: string;
+}
+
+interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  excerpt: string;
+  created_at: string;
+  tags: Tag[];
+}
+
 export default async function CollectionDetailPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
   const { data: collection } = await supabase
@@ -51,7 +66,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
     .eq('collection_id', collection.id)
     .order('display_order', { ascending: true });
 
-  const orderedPosts = orderedPostsData?.map(item => item.posts) || [];
+  const orderedPosts: Post[] = (orderedPostsData?.map(item => item.posts) || []).flat();
 
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8">
@@ -76,7 +91,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
 
       <div className="space-y-8">
         {orderedPosts.length > 0 ? (
-          orderedPosts.map((post: any, index) => (
+          orderedPosts.map((post: Post, index) => (
             <div key={post.id}>
               <Link href={`/posts/${post.slug}`} className="block group">
                 <Card className="hover:border-primary transition-colors">
@@ -92,7 +107,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         <div className="flex gap-2">
-                          {post.tags.slice(0, 3).map((tag: any) => (
+                          {post.tags.slice(0, 3).map((tag: Tag) => (
                             <Badge key={tag.slug} variant="secondary">{tag.name}</Badge>
                           ))}
                         </div>

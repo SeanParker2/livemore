@@ -10,6 +10,13 @@ export const size = {
 };
 export const contentType = 'image/png';
 
+interface PostData {
+  title: string;
+  profiles: {
+    full_name: string;
+  } | null;
+}
+
 export default async function Image({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
 
@@ -22,7 +29,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
       )
     `)
     .eq('slug', params.slug)
-    .single();
+    .single<PostData>();
 
   // Fonts
   const libreBaskervilleBold = fetch(
@@ -87,7 +94,6 @@ export default async function Image({ params }: { params: { slug: string } }) {
               Livemore
             </span>
             <span>
-              {/* @ts-ignore */}
               By {post?.profiles?.full_name || 'The Livemore Team'}
             </span>
           </div>

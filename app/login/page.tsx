@@ -10,13 +10,22 @@ import { toast } from 'sonner';
 export default function LoginPage() {
   const { execute, status } = useAction(signInWithMagicLink, {
     onSuccess: ({ data }) => {
-      if (data?.success) {
+      if (data && "success" in data && data.success) {
         toast.success("发送成功", { description: data.success });
       }
     },
     onError: ({ error }) => {
       if (error.serverError) {
         toast.error("发送失败", { description: error.serverError });
+      } else if (error.validationErrors) {
+        const validationErrorMessages = Object.values(
+          error.validationErrors,
+        )
+          .flat()
+          .join(", ");
+        toast.error("输入无效", {
+          description: validationErrorMessages,
+        });
       }
     },
   });

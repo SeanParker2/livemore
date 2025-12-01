@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +14,9 @@ import { Post } from "@/lib/types";
 import { MultiSelect } from "./MultiSelect";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/actions/image-actions";
+import { useAction } from 'next-safe-action/hooks';
+import { type SafeAction } from 'next-safe-action';
+import type { z } from 'zod';
 
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -22,31 +24,45 @@ import MarkdownIt from 'markdown-it';
 
 const mdParser = new MarkdownIt();
 
-const initialState = {
-  success: false,
-  message: "",
-};
-
-function SubmitButton({ isEditing }: { isEditing: boolean }) {
-  const { pending } = useFormStatus();
+function SubmitButton({ isEditing, isExecuting }: { isEditing: boolean; isExecuting: boolean }) {
   return (
-    <Button type="submit" disabled={pending} size="lg">
-      {pending ? (isEditing ? "更新中..." : "发布中...") : (isEditing ? "更新文章" : "发布文章")}
+    <Button type="submit" disabled={isExecuting} size="lg">
+      {isExecuting ? (isEditing ? "更新中..." : "发布中...") : (isEditing ? "更新文章" : "发布文章")}
     </Button>
   );
 }
 
 interface PostFormProps {
-  action: (prevState: any, formData: FormData) => Promise<{ success: boolean; message: string; }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action: any;
   initialData?: Post | null;
 }
 
 export function PostForm({ action, initialData }: PostFormProps) {
-  const [state, formAction] = useFormState(action, initialState);
   const isEditing = !!initialData;
   const [tags, setTags] = useState<{ value: string; label: string }[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags?.map(t => t.id.toString()) || []);
   const [content, setContent] = useState(initialData?.content || '');
+
+  const { execute, status } = useAction(action, {
+    onSuccess: (data) => {
+      if (data?.success) {
+        toast.success("操作成功!", { description: data.message });
+      } else {
+        toast.error("操作失败", { description: data?.message || "未知错误" });
+      }
+    },
+    onError: (error) => {
+      let description = "发生未知错误";
+      if (error.serverError) {
+        description = error.serverError;
+      } else if (error.validationErrors) {
+        const firstError = Object.values(error.validationErrors).flat().shift();
+        description = firstError || "请检查您输入的内容。";
+      }
+      toast.error("操作失败", { description });
+    }
+  });
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -58,16 +74,6 @@ export function PostForm({ action, initialData }: PostFormProps) {
     };
     fetchTags();
   }, []);
-
-  useEffect(() => {
-    if (state.message) {
-      if (state.success) {
-        toast.success("操作成功!", { description: state.message });
-      } else {
-        toast.error("操作失败", { description: state.message });
-      }
-    }
-  }, [state]);
 
   async function handleImageUpload(file: File) {
     const formData = new FormData();
@@ -82,8 +88,26 @@ export function PostForm({ action, initialData }: PostFormProps) {
     return null;
   }
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    const dataToExecute = {
+      id: initialData?.id,
+      title: formData.get('title') || '',
+      summary: formData.get('summary') || '',
+      status: formData.get('status') || 'draft',
+      is_premium: formData.get('is_premium') === 'on',
+      broadcast_email: formData.get('broadcast_email') === 'on',
+      content: content,
+      tags: selectedTags.join(','),
+    };
+
+    execute(dataToExecute);
+  };
+
   return (
-    <form action={formAction} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-2">
         <Label htmlFor="title" className="text-lg">标题</Label>
         <Input
@@ -105,7 +129,6 @@ export function PostForm({ action, initialData }: PostFormProps) {
           onValueChange={setSelectedTags}
           placeholder="选择或创建标签..."
         />
-        <input type="hidden" name="tags" value={selectedTags.join(',')} />
       </div>
 
       <div className="space-y-2">
@@ -121,7 +144,6 @@ export function PostForm({ action, initialData }: PostFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="content">正文 (支持 Markdown)</Label>
-        <input type="hidden" name="content" value={content} />
         <MdEditor
           id="content"
           value={content}
@@ -166,7 +188,7 @@ export function PostForm({ action, initialData }: PostFormProps) {
           </label>
         </div>
         <div className="flex justify-end">
-          <SubmitButton isEditing={isEditing} />
+          <SubmitButton isEditing={isEditing} isExecuting={status === 'executing'} />
         </div>
     </form>
   );

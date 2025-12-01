@@ -35,15 +35,9 @@ export const userAction = publicAction.use(async ({ next }) => {
 });
 
 export const adminAction = userAction.use(async ({ ctx, next }) => {
-  const supabase = await createClient();
-  const authCheck = await requireAdmin(supabase);
-  if (!authCheck.success) {
-    throw new ActionError(authCheck.message);
+  if (ctx.profile?.billing_status !== 'founder') {
+    throw new ActionError('无权操作');
   }
-  return next({
-    ctx: {
-      ...ctx,
-      user: authCheck.user,
-    },
-  });
+
+  return next({ ctx });
 });

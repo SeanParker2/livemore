@@ -18,6 +18,29 @@ const libreBaskerville = Libre_Baskerville({
 
 const POSTS_PER_PAGE = 10;
 
+interface Author {
+  avatar_url: string;
+  full_name: string;
+}
+
+interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+interface Post {
+  id: string;
+  slug: string;
+  title: string;
+  is_premium: boolean;
+  summary: string;
+  content: string;
+  created_at: string;
+  author: Author;
+  tags: Tag[];
+}
+
 export default async function HomePage({ searchParams }: { searchParams: { page?: string } }) {
   const supabase = await createClient();
   const currentPage = Number(searchParams?.page) || 1;
@@ -128,7 +151,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
           {currentPage > 1 ? `第 ${currentPage} 页` : '最新研报'}
         </h2>
         <div className="space-y-12">
-          {posts?.map((post) => (
+          {(posts as Post[])?.map((post) => (
             <Link href={`/posts/${post.slug}`} key={post.id} className="block group">
               <article>
                 <div className="flex items-center justify-between mb-4">
@@ -147,10 +170,10 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
                 </p>
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={(post.author as any).avatar_url} />
-                    <AvatarFallback>{(post.author as any).full_name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={post.author.avatar_url} />
+                    <AvatarFallback>{post.author.full_name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <span>{(post.author as any).full_name}</span>
+                  <span>{post.author.full_name}</span>
                   <span>•</span>
                   <span>{new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
                   <span>•</span>

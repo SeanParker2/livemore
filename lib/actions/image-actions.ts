@@ -1,37 +1,33 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
-import { createSafeAction } from "@/lib/safe-action";
 import { z } from "zod";
+import { adminAction } from "@/lib/safe-action";
 
 const imageSchema = z.object({
-  image: z.any().refine(file => file instanceof File, "No image file provided."),
+  image: z.any().refine((file): file is File => file instanceof File, "No image file provided."),
 });
 
-const uploadImageHandler = async ({ image }: { image: File }) => {
-  const supabase = await createClient();
-  const path = `${Date.now()}-${image.name}`;
+export const uploadImage = adminAction
+  .schema(imageSchema)
+  .action(async ({ parsedInput: { image } }) => {
+    const supabase = await createClient();
+    const path = `${Date.now()}-${image.name}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from('images')
-    .upload(path, image);
+    const { error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(path, image);
 
-  if (uploadError) {
-    console.error("Image upload failed:", uploadError.message);
-    return { serverError: uploadError.message };
-  }
+    if (uploadError) {
+      console.error("Image upload failed:", uploadError.message);
+      return { failure: uploadError.message };
+    }
 
-  const { data } = supabase.storage.from('images').getPublicUrl(path);
+    const { data } = supabase.storage.from('images').getPublicUrl(path);
 
-  if (!data || !data.publicUrl) {
-    return { serverError: "Failed to get public URL for the uploaded image." };
-  }
+    if (!data || !data.publicUrl) {
+      return { failure: "Failed to get public URL for the uploaded image." };
+    }
 
-  return { data: { publicUrl: data.publicUrl } };
-};
-
-export const uploadImage = createSafeAction(
-  imageSchema,
-  uploadImageHandler,
-  { role: 'admin' }
-);
+    return { success: data.publicUrl };
+  });

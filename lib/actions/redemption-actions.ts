@@ -55,21 +55,21 @@ export const redeemCode = userAction
 
 export const generateCodes = adminAction
   .schema(generateCodesSchema)
-  .action(async ({ parsedInput: input }) => {
+  .action(async ({ parsedInput: { count, duration_days } }) => {
     const supabase = await createClient();
-
-    // 3. 生成兑换码
-    const codes = Array.from({ length: input.count }, () => ({
-      code: `GIFT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-      duration_days: input.duration_days,
-    }));
+    const codes = [];
+    for (let i = 0; i < count; i++) {
+      codes.push({
+        code: Math.random().toString(36).substring(2, 10).toUpperCase(),
+        duration_days,
+      });
+    }
 
     const { error } = await supabase.from("redemption_codes").insert(codes);
 
     if (error) {
-      return { failure: `生成兑换码失败: ${error.message}` };
+      return { failure: error.message };
     }
 
-    revalidatePath("/admin/gifts");
-    return { success: `成功生成 ${input.count} 个兑换码` };
+    return { success: `成功生成 ${count} 个兑换码` };
   });

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAction } from 'next-safe-action/hooks';
-import { generateCodes, generateCodesSchema, returnSchemaGenerate } from '@/lib/actions/redemption-actions';
+import { generateCodes } from '@/lib/actions/redemption-actions';
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,16 @@ function SubmitButton({ isPending }: { isPending: boolean }) {
   return <Button type="submit" disabled={isPending}>{isPending ? '生成中...' : '生成兑换码'}</Button>;
 }
 
+interface RedemptionCode {
+  id: string;
+  code: string;
+  duration_days: number;
+  is_used: boolean;
+  used_by: string | null;
+}
+
 export default function AdminGiftsPage() {
-  const [codes, setCodes] = React.useState<any[]>([]);
+  const [codes, setCodes] = React.useState<RedemptionCode[]>([]);
 
   async function fetchCodes() {
     const supabase = createClient();
@@ -23,27 +31,36 @@ export default function AdminGiftsPage() {
     setCodes(data || []);
   }
 
-  useEffect(() => {
-    fetchCodes();
-  }, []);
-
   const { execute, status } = useAction(generateCodes, {
-    onSuccess: ({ data }) => {
-      if (data) {
-        toast.success("成功", { description: data });
+    onSuccess: (data) => {
+      if (data && "success" in data && data.success) {
+        toast.success("成功", { description: data.success });
         fetchCodes();
+      } else if (data && "failure" in data && data.failure) {
+        toast.error("操作失败", { description: data.failure });
       }
     },
     onError: ({ error }) => {
       if (error.serverError) {
         toast.error("操作失败", { description: error.serverError });
+      } else if (error.validationErrors) {
+        const validationErrorMessages = Object.values(
+          error.validationErrors,
+        )
+          .flat()
+          .join(", ");
+        toast.error("输入无效", {
+          description: validationErrorMessages,
+        });
       }
     },
   });
 
   const isPending = status === 'executing';
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     const count = Number(formData.get('count'));
     const duration_days = Number(formData.get('duration_days'));
     execute({ count, duration_days });
@@ -57,7 +74,7 @@ export default function AdminGiftsPage() {
           <CardDescription>批量生成会员兑换码，用于赠送或活动。</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="count">生成数量</Label>
