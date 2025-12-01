@@ -22,6 +22,13 @@ export default function RedeemPage() {
     onError: ({ error }) => {
       if (error.serverError) {
         toast.error("兑换失败", { description: error.serverError });
+      } else if (error.validationErrors) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const validationErrors = error.validationErrors as any;
+        const firstError = Object.values(validationErrors).flat().shift() as string;
+        if (firstError) {
+          toast.error("输入无效", { description: firstError });
+        }
       }
     },
   });

@@ -33,9 +33,13 @@ export function NewsletterForm({ isDark = false }: { isDark?: boolean }) {
     onError: ({ error }) => {
       if (error.serverError) {
         toast.error("订阅失败", { description: error.serverError });
-      }
-      if (error.validationErrors?.email?._errors) {
-        toast.error("邮箱地址无效", { description: error.validationErrors.email._errors[0] });
+      } else if (error.validationErrors) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const validationErrors = error.validationErrors as any;
+        const firstError = Object.values(validationErrors).flat().shift() as string;
+        if (firstError) {
+          toast.error("输入无效", { description: firstError });
+        }
       }
     },
   });

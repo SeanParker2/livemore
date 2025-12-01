@@ -33,11 +33,11 @@ export default function ResourceDownloadButton({ resource, userId }: Props) {
 
     const result = await downloadResource(resource.id);
 
-    if (result.success) {
+    if (result.data?.url) {
       toast({ title: "已开始下载", description: "文件将在新标签页中打开。" });
-      window.open(result.url, "_blank");
+      window.open(result.data.url, "_blank");
     } else {
-      toast({ title: "下载失败", description: result.message, variant: "destructive" });
+      toast({ title: "下载失败", description: result.serverError || "未知错误", variant: "destructive" });
     }
   };
 
