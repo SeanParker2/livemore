@@ -6,7 +6,7 @@ import { redeemCodeSchema, generateCodesSchema } from "@/lib/validations/schemas
 import { adminAction, userAction } from "@/lib/safe-action";
 
 // Re-export the schemas
-export { redeemCodeSchema, generateCodesSchema };
+// export { redeemCodeSchema, generateCodesSchema };
 
 export const redeemCode = userAction
   .schema(redeemCodeSchema)

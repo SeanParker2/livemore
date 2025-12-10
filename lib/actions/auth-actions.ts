@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { publicAction } from '@/lib/safe-action';
 
-export const magicLinkSchema = z.object({
+const magicLinkSchema = z.object({
   email: z.string().email({ message: '无效的邮箱地址' }),
 });
 

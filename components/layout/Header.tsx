@@ -16,6 +16,12 @@ import { MobileNav } from "./MobileNav";
 import { SiteSearch } from "@/components/SiteSearch";
 import { ThemeToggle } from "../ThemeToggle";
 
+import { Libre_Baskerville } from 'next/font/google';
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ['latin'],
+  weight: '700',
+});
 
 export async function Header() {
   const supabase = await createClient();
@@ -44,7 +50,7 @@ export async function Header() {
           <div className="flex-1 md:flex md:items-center md:justify-between">
             <div className="hidden md:flex md:items-center md:gap-6">
               <Link href="/" className="mr-6 flex items-center space-x-2">
-                <span className="font-serif font-bold text-2xl tracking-tight">Livemore</span>
+                <span className={`font-bold text-2xl tracking-tight ${libreBaskerville.className}`}>Signal & Cipher</span>
               </Link>
               <nav className="flex items-center gap-6 text-sm">
                 <Link

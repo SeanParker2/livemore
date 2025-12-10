@@ -1,67 +1,48 @@
 'use client';
 
-import { useAction } from 'next-safe-action/hooks';
+import { useTransition } from 'react';
 import { subscribeToNewsletter } from '@/lib/actions/newsletter-actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useRef } from 'react';
 import { toast } from 'sonner';
 
-function SubmitButton({ isDark, isPending }: { isDark?: boolean, isPending: boolean }) {
-  return (
-    <Button 
-      type="submit" 
-      aria-disabled={isPending}
-      disabled={isPending}
-      size="lg"
-      className={isDark ? 'h-12 text-base bg-white text-black hover:bg-stone-200' : 'h-12 text-base'}
-    >
-      {isPending ? '订阅中...' : '订阅'}
-    </Button>
-  );
-}
-
-export function NewsletterForm({ isDark = false }: { isDark?: boolean }) {
+export function NewsletterForm({ isDark = false, className }: { isDark?: boolean, className?: string }) {
   const formRef = useRef<HTMLFormElement>(null);
-  const { execute, status } = useAction(subscribeToNewsletter, {
-    onSuccess: ({ data }) => {
-      if (data?.success) {
-        toast.success("订阅成功", { description: data.success });
+  const [isPending, startTransition] = useTransition();
+
+  const action = async (formData: FormData) => {
+    startTransition(async () => {
+      const result = await subscribeToNewsletter(null, formData);
+      
+      if (result.error) {
+        toast.error("订阅失败", { description: result.error });
+      } else if (result.success) {
+        toast.success("订阅成功", { description: result.success });
         formRef.current?.reset();
       }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error("订阅失败", { description: error.serverError });
-      } else if (error.validationErrors) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const validationErrors = error.validationErrors as any;
-        const firstError = Object.values(validationErrors).flat().shift() as string;
-        if (firstError) {
-          toast.error("输入无效", { description: firstError });
-        }
-      }
-    },
-  });
-
-  const isPending = status === 'executing';
-
-  const action = (formData: FormData) => {
-    const email = formData.get('email') as string;
-    execute({ email });
+    });
   };
 
   return (
-    <form action={action} ref={formRef} className="w-full max-w-md">
-      <div className="flex flex-col sm:flex-row gap-4">
+    <form action={action} ref={formRef} className={`w-full max-w-md ${className}`}>
+      <div className="flex flex-col gap-3">
         <Input
           type="email"
           name="email"
           placeholder="Enter your email"
           required
-          className={isDark ? 'h-12 text-base bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-white' : 'h-12 text-base grow'}
+          className={isDark ? 'h-10 text-sm bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-white' : 'h-10 text-sm'}
         />
-        <SubmitButton isDark={isDark} isPending={isPending} />
+        <Button 
+          type="submit" 
+          aria-disabled={isPending}
+          disabled={isPending}
+          size="default"
+          className={isDark ? 'h-10 text-sm w-full bg-white text-black hover:bg-stone-200' : 'h-10 text-sm w-full'}
+        >
+          {isPending ? '订阅中...' : '订阅'}
+        </Button>
       </div>
     </form>
   );
