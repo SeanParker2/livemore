@@ -6,22 +6,34 @@ import slugify from "slugify";
 import { Resend } from "resend";
 import { NewPostEmail } from "@/components/emails/NewPostEmail";
 import { postSchema } from "@/lib/validations/schemas";
-import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server"; // Keep for public read access if needed
+import { createClient } from "@/lib/supabase/server";
 
-// Helper to verify admin access and get admin client
-async function getAdminClient() {
-  const cookieStore = await cookies();
-  const adminSecret = cookieStore.get('admin_access')?.value;
-  const validSecret = process.env.ADMIN_ACCESS_PATH;
-
-  if (!adminSecret || !validSecret || adminSecret !== validSecret) {
-      return null;
+// 1. 新的权限验证函数：直接检查当前登录用户是否为 founder
+async function verifyFounderAccess() {
+  const supabase = await createClient();
+  
+  // 获取当前用户
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return null;
   }
-  return createAdminClient();
+
+  // 检查 profiles 表中的 billing_status
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('billing_status')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile || profile.billing_status !== 'founder') {
+    return null;
+  }
+
+  return user; // 返回用户信息以便后续使用（如设置作者ID）
 }
 
+// 邮件广播功能保持不变
 async function broadcastNewPostEmail({
   title,
   summary,
@@ -34,7 +46,6 @@ async function broadcastNewPostEmail({
   is_premium: boolean;
 }) {
   try {
-    // Use admin client for reading subs to ensure access
     const supabase = createAdminClient(); 
     const { data: subscribers, error: subsError } = await supabase
       .from("subscriptions")
@@ -48,6 +59,7 @@ async function broadcastNewPostEmail({
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
+    // 确保有默认值，防止构建失败
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const postUrl = `${baseUrl}/posts/${slug}`;
 
@@ -80,10 +92,17 @@ async function broadcastNewPostEmail({
 }
 
 export async function createPost(prevState: unknown, formData: FormData) {
+    // 1. 验证权限
+    const currentUser = await verifyFounderAccess();
+    if (!currentUser) {
+        return { failure: "未授权的操作：您不是 Founder 管理员" };
+    }
+
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
     const summary = formData.get('summary') as string;
-    const is_premium = formData.get('is_premium') === 'true';
+    // 表单处理修正：确保获取正确的布尔值
+    const is_premium = formData.get('is_premium') === 'true'; 
     const status = formData.get('status') as "draft" | "published" | "archived";
     const tags = formData.get('tags') as string;
     const broadcast_email = formData.get('broadcast_email') === 'true';
@@ -94,50 +113,47 @@ export async function createPost(prevState: unknown, formData: FormData) {
     }).safeParse({ title, content, summary, is_premium, status, tags, broadcast_email });
 
     if (!parsed.success) {
-        return { failure: "输入无效" };
+        return { failure: "输入无效: " + JSON.stringify(parsed.error.flatten()) };
     }
 
-    const supabase = await getAdminClient();
-    if (!supabase) {
-        return { failure: "未授权的访问" };
-    }
-
-    // Since we are not using user session, we need to find an author ID.
-    // We attribute it to the first 'founder' profile found.
-    const { data: founder } = await supabase.from('profiles').select('id').eq('billing_status', 'founder').limit(1).single();
-    
-    if (!founder) {
-        return { failure: "未找到管理员账户(founder)以归属文章" };
-    }
+    // 2. 使用 Admin Client 进行数据库写入（绕过复杂的 RLS，确保写入成功）
+    const supabaseAdmin = createAdminClient();
 
     let slug = slugify(title, { lower: true, strict: true });
 
-    const { data: existingPost } = await supabase.from('posts').select('slug').eq('slug', slug).single();
+    // 检查 slug 是否重复
+    const { data: existingPost } = await supabaseAdmin.from('posts').select('slug').eq('slug', slug).single();
     if (existingPost) {
       slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
-    const { data: post, error } = await supabase.from('posts').insert({
+    // 3. 插入文章 (使用当前登录用户的 ID 作为 author_id)
+    const { data: post, error } = await supabaseAdmin.from('posts').insert({
       title,
       slug,
       content,
       summary,
       is_premium,
       status,
-      author_id: founder.id,
+      author_id: currentUser.id, // 核心修正：绑定到当前操作者
     }).select('id').single();
 
-    if (error || !post) return { failure: error?.message || "Failed to create post." };
+    if (error || !post) {
+      console.error("Create post error:", error);
+      return { failure: error?.message || "发布文章失败" };
+    }
 
+    // 4. 处理标签
     if (tags) {
       const tagIds = tags.split(',').filter(Boolean).map(Number);
       if (tagIds.length > 0) {
         const postTags = tagIds.map((tag_id: number) => ({ post_id: post.id, tag_id }));
-        const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-        if (tagsError) return { failure: tagsError.message };
+        const { error: tagsError } = await supabaseAdmin.from('post_tags').insert(postTags);
+        if (tagsError) console.error("Tags error:", tagsError); // 标签失败不应阻断流程，仅记录
       }
     }
 
+    // 5. 广播邮件
     if (broadcast_email && status === 'published') {
       await broadcastNewPostEmail({
         title,
@@ -153,6 +169,12 @@ export async function createPost(prevState: unknown, formData: FormData) {
 }
 
 export async function updatePost(prevState: unknown, formData: FormData) {
+    // 1. 验证权限
+    const currentUser = await verifyFounderAccess();
+    if (!currentUser) {
+        return { failure: "未授权的操作：您不是 Founder 管理员" };
+    }
+
     const id = Number(formData.get('id'));
     const title = formData.get('title') as string;
     const content = formData.get('content') as string;
@@ -172,12 +194,10 @@ export async function updatePost(prevState: unknown, formData: FormData) {
         return { failure: "输入无效" };
     }
 
-    const supabase = await getAdminClient();
-    if (!supabase) {
-        return { failure: "未授权的访问" };
-    }
+    const supabaseAdmin = createAdminClient();
 
-    const { error } = await supabase.from('posts').update({
+    // 2. 更新文章
+    const { error } = await supabaseAdmin.from('posts').update({
       title,
       content,
       summary,
@@ -187,22 +207,22 @@ export async function updatePost(prevState: unknown, formData: FormData) {
 
     if (error) return { failure: error.message };
 
-    // Handle tags
-    const { error: deleteTagsError } = await supabase.from('post_tags').delete().eq('post_id', id);
-    if (deleteTagsError) return { failure: deleteTagsError.message };
+    // 3. 处理标签 (先删后加)
+    const { error: deleteTagsError } = await supabaseAdmin.from('post_tags').delete().eq('post_id', id);
+    if (deleteTagsError) console.error("Delete tags error:", deleteTagsError);
 
     if (tags) {
         const tagIds = tags.split(',').filter(Boolean).map(Number);
         if (tagIds.length > 0) {
           const postTags = tagIds.map((tag_id: number) => ({ post_id: id, tag_id }));
-          const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-          if (tagsError) return { failure: tagsError.message };
+          const { error: tagsError } = await supabaseAdmin.from('post_tags').insert(postTags);
+          if (tagsError) console.error("Insert tags error:", tagsError);
         }
     }
 
-
+    // 4. 广播邮件 (仅当从未发布变为已发布，或者强制勾选了广播时触发逻辑比较复杂，这里简化为勾选即发送)
     if (broadcast_email && status === 'published') {
-      const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
+      const { data: post } = await supabaseAdmin.from('posts').select('slug').eq('id', id).single();
       if (post) {
         await broadcastNewPostEmail({
           title,
@@ -215,19 +235,20 @@ export async function updatePost(prevState: unknown, formData: FormData) {
 
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
-    revalidatePath(`/posts/[slug]`, 'page');
+    revalidatePath(`/posts/[slug]`, 'page'); // 假设 slug 没变，或者需要重新获取 slug 来 revalidate
     return { success: "文章已成功更新！" };
 }
 
 export async function deletePost(prevState: unknown, formData: FormData) {
-    const id = Number(formData.get('id'));
-    
-    const supabase = await getAdminClient();
-    if (!supabase) {
-        return { failure: "未授权的访问" };
+    const currentUser = await verifyFounderAccess();
+    if (!currentUser) {
+        return { failure: "未授权的操作" };
     }
 
-    const { error } = await supabase.from('posts').delete().eq('id', id);
+    const id = Number(formData.get('id'));
+    const supabaseAdmin = createAdminClient();
+
+    const { error } = await supabaseAdmin.from('posts').delete().eq('id', id);
 
     if (error) return { failure: error.message };
 
