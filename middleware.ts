@@ -4,52 +4,19 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // 1. Admin Route Protection & Rewriting
+  // 1. Admin Route Protection
   if (pathname.startsWith('/admin')) {
-    const adminPath = process.env.ADMIN_ACCESS_PATH;
+    const adminCookie = request.cookies.get('admin_session')?.value;
+    const adminKey = process.env.ADMIN_ACCESS_KEY;
     
-    // If admin path is not configured, block all admin access
-    if (!adminPath) {
-       console.error('ADMIN_ACCESS_PATH is not set in environment variables.');
-       return new NextResponse(null, { status: 404 });
-    }
-
-    const expectedPrefix = `/admin/${adminPath}`;
-    
-    // Check if the request matches the secure admin path
-    if (pathname === expectedPrefix || pathname.startsWith(`${expectedPrefix}/`)) {
-        // Rewrite the URL to the internal admin path
-        // e.g. /admin/SECRET/dashboard -> /admin/dashboard
-        const internalPath = pathname.replace(expectedPrefix, '/admin') || '/admin';
-        
-        const url = request.nextUrl.clone();
-        url.pathname = internalPath;
-        
-        const response = NextResponse.rewrite(url);
-        
-        // Pass the secret path to the layout via header
-        response.headers.set('x-admin-path', adminPath);
-        
-        // Set a session cookie for Server Actions to verify access
-        response.cookies.set('admin_access', adminPath, {
-            path: '/',
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-        });
-        
-        return response;
-    } else {
-        // Invalid Admin Path - Block access and show 404
-        // This hides the existence of the admin panel
-        const url = request.nextUrl.clone();
-        url.pathname = '/not-found';
-        return NextResponse.rewrite(url, { status: 404 });
+    // Verify if cookie matches key
+    if (!adminCookie || adminCookie !== adminKey) {
+       return NextResponse.redirect(new URL('/', request.url));
     }
   }
 
-  // 2. Existing Supabase Auth for non-admin routes (Session Refresh)
+  // 2. Existing Supabase Auth for all routes (Session Refresh)
+  // We keep this to ensure auth state is maintained for the rest of the app
   let response = NextResponse.next({
     request: {
       headers: request.headers,
