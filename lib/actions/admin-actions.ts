@@ -1,12 +1,26 @@
 'use server';
 
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import slugify from "slugify";
 import { Resend } from "resend";
 import { NewPostEmail } from "@/components/emails/NewPostEmail";
 import { postSchema } from "@/lib/validations/schemas";
+import { cookies } from "next/headers";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server"; // Keep for public read access if needed
+
+// Helper to verify admin access and get admin client
+async function getAdminClient() {
+  const cookieStore = await cookies();
+  const adminSecret = cookieStore.get('admin_access')?.value;
+  const validSecret = process.env.ADMIN_ACCESS_PATH;
+
+  if (!adminSecret || !validSecret || adminSecret !== validSecret) {
+      return null;
+  }
+  return createAdminClient();
+}
 
 async function broadcastNewPostEmail({
   title,
@@ -20,7 +34,8 @@ async function broadcastNewPostEmail({
   is_premium: boolean;
 }) {
   try {
-    const supabase = await createClient();
+    // Use admin client for reading subs to ensure access
+    const supabase = createAdminClient(); 
     const { data: subscribers, error: subsError } = await supabase
       .from("subscriptions")
       .select("email")
@@ -82,11 +97,17 @@ export async function createPost(prevState: unknown, formData: FormData) {
         return { failure: "输入无效" };
     }
 
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const supabase = await getAdminClient();
+    if (!supabase) {
+        return { failure: "未授权的访问" };
+    }
+
+    // Since we are not using user session, we need to find an author ID.
+    // We attribute it to the first 'founder' profile found.
+    const { data: founder } = await supabase.from('profiles').select('id').eq('billing_status', 'founder').limit(1).single();
     
-    if (!user) {
-        return { failure: "未登录" };
+    if (!founder) {
+        return { failure: "未找到管理员账户(founder)以归属文章" };
     }
 
     let slug = slugify(title, { lower: true, strict: true });
@@ -103,7 +124,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
       summary,
       is_premium,
       status,
-      author_id: user.id,
+      author_id: founder.id,
     }).select('id').single();
 
     if (error || !post) return { failure: error?.message || "Failed to create post." };
@@ -151,7 +172,11 @@ export async function updatePost(prevState: unknown, formData: FormData) {
         return { failure: "输入无效" };
     }
 
-    const supabase = await createClient();
+    const supabase = await getAdminClient();
+    if (!supabase) {
+        return { failure: "未授权的访问" };
+    }
+
     const { error } = await supabase.from('posts').update({
       title,
       content,
@@ -197,7 +222,11 @@ export async function updatePost(prevState: unknown, formData: FormData) {
 export async function deletePost(prevState: unknown, formData: FormData) {
     const id = Number(formData.get('id'));
     
-    const supabase = await createClient();
+    const supabase = await getAdminClient();
+    if (!supabase) {
+        return { failure: "未授权的访问" };
+    }
+
     const { error } = await supabase.from('posts').delete().eq('id', id);
 
     if (error) return { failure: error.message };
