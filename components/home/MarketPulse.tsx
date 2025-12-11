@@ -1,62 +1,59 @@
-import { Zap, ArrowUp, ArrowDown } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export function MarketPulse() {
-  const pulses = [
+  const data = [
     {
-      id: 1,
-      time: "10:42 AM",
-      symbol: "BTC",
-      content: "比特币短时突破 70,000 USDT，24小时涨幅达 5.2%。",
-      trend: "up",
+      symbol: "BTC/USD",
+      price: "68,420.50",
+      change: "+2.4%",
+      trend: "up"
     },
     {
-      id: 2,
-      time: "09:15 AM",
-      symbol: "MACRO",
-      content: "美联储会议纪要暗示降息预期延后，纳指期货微跌。",
-      trend: "down",
+      symbol: "ETH/USD",
+      price: "3,892.10",
+      change: "-0.8%",
+      trend: "down"
     },
     {
-      id: 3,
-      time: "08:30 AM",
-      symbol: "ETH",
-      content: "以太坊链上 Gas 费降至年内低点，Layer 2 活跃度激增。",
-      trend: "up",
-    },
+      symbol: "SOL/USD",
+      price: "145.20",
+      change: "+5.1%",
+      trend: "up"
+    }
   ];
 
   return (
-    <div className="bg-card rounded-xl border p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="font-semibold text-sm flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-500" />
+    <div className="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+      <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-600 flex items-center gap-2">
+          <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
           Market Pulse
-        </h4>
+        </h3>
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
         </span>
       </div>
-      <ul className="space-y-4">
-        {pulses.map((item) => (
-          <li key={item.id} className="text-sm">
-            <div className="flex gap-2 text-xs text-muted-foreground mb-1 items-center">
-              <span className="font-mono">{item.time}</span>
-              <span className={item.trend === 'up' ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
-                {item.symbol}
-              </span>
-              {item.trend === 'up' ? (
-                 <ArrowUp className="w-3 h-3 text-green-500" />
-              ) : (
-                 <ArrowDown className="w-3 h-3 text-red-500" />
-              )}
+      <div className="divide-y divide-slate-100">
+        {data.map((item) => (
+          <div key={item.symbol} className="px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer flex justify-between items-center">
+            <div>
+              <div className="text-[10px] font-mono text-slate-400 mb-0.5">{item.symbol}</div>
+              <div className="font-mono font-bold text-sm text-slate-900">{item.price}</div>
             </div>
-            <p className="leading-snug hover:underline cursor-pointer text-foreground/90">
-              {item.content}
-            </p>
-          </li>
+            <div className={`text-xs font-mono font-medium px-1.5 py-0.5 rounded ${
+              item.trend === 'up' 
+                ? 'text-green-600 bg-green-50' 
+                : 'text-red-600 bg-red-50'
+            }`}>
+              {item.change}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
+      <div className="bg-slate-50/50 px-4 py-2 text-center border-t border-slate-100">
+        <span className="text-[10px] font-mono text-slate-400">Data delayed by 15 mins</span>
+      </div>
     </div>
   );
 }

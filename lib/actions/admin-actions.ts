@@ -6,7 +6,6 @@ import { revalidatePath } from "next/cache";
 import slugify from "slugify";
 import { Resend } from "resend";
 import { NewPostEmail } from "@/components/emails/NewPostEmail";
-import { adminAction } from "@/lib/safe-action";
 import { postSchema } from "@/lib/validations/schemas";
 
 async function broadcastNewPostEmail({
@@ -65,14 +64,30 @@ async function broadcastNewPostEmail({
   }
 }
 
-export const createPost = adminAction
-  .schema(postSchema.extend({
-    tags: z.string().optional(),
-    broadcast_email: z.boolean().optional(),
-  }))
-  .action(async ({ parsedInput, ctx: { user } }) => {
+export async function createPost(prevState: unknown, formData: FormData) {
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const summary = formData.get('summary') as string;
+    const is_premium = formData.get('is_premium') === 'true';
+    const status = formData.get('status') as "draft" | "published" | "archived";
+    const tags = formData.get('tags') as string;
+    const broadcast_email = formData.get('broadcast_email') === 'true';
+
+    const parsed = postSchema.extend({
+        tags: z.string().optional(),
+        broadcast_email: z.boolean().optional(),
+    }).safeParse({ title, content, summary, is_premium, status, tags, broadcast_email });
+
+    if (!parsed.success) {
+        return { failure: "输入无效" };
+    }
+
     const supabase = await createClient();
-    const { title, content, summary, is_premium, status, tags } = parsedInput;
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+        return { failure: "未登录" };
+    }
 
     let slug = slugify(title, { lower: true, strict: true });
 
@@ -91,18 +106,18 @@ export const createPost = adminAction
       author_id: user.id,
     }).select('id').single();
 
-    if (error || !post) throw error || new Error("Failed to create post.");
+    if (error || !post) return { failure: error?.message || "Failed to create post." };
 
     if (tags) {
       const tagIds = tags.split(',').filter(Boolean).map(Number);
       if (tagIds.length > 0) {
         const postTags = tagIds.map((tag_id: number) => ({ post_id: post.id, tag_id }));
         const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-        if (tagsError) throw tagsError;
+        if (tagsError) return { failure: tagsError.message };
       }
     }
 
-    if (parsedInput.broadcast_email && status === 'published') {
+    if (broadcast_email && status === 'published') {
       await broadcastNewPostEmail({
         title,
         summary: summary || '',
@@ -114,18 +129,29 @@ export const createPost = adminAction
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
     return { success: "文章已成功发布！" };
-  });
+}
 
-export const updatePost = adminAction
-  .schema(postSchema.extend({
-    id: z.number(),
-    tags: z.string().optional(),
-    broadcast_email: z.boolean().optional(),
-  }))
-  .action(async ({ parsedInput }) => {
+export async function updatePost(prevState: unknown, formData: FormData) {
+    const id = Number(formData.get('id'));
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const summary = formData.get('summary') as string;
+    const is_premium = formData.get('is_premium') === 'true';
+    const status = formData.get('status') as "draft" | "published" | "archived";
+    const tags = formData.get('tags') as string;
+    const broadcast_email = formData.get('broadcast_email') === 'true';
+
+    const parsed = postSchema.extend({
+        id: z.number(),
+        tags: z.string().optional(),
+        broadcast_email: z.boolean().optional(),
+    }).safeParse({ id, title, content, summary, is_premium, status, tags, broadcast_email });
+
+    if (!parsed.success) {
+        return { failure: "输入无效" };
+    }
+
     const supabase = await createClient();
-    const { id, title, content, summary, is_premium, status, tags } = parsedInput;
-
     const { error } = await supabase.from('posts').update({
       title,
       content,
@@ -134,23 +160,23 @@ export const updatePost = adminAction
       status
     }).eq('id', id);
 
-    if (error) throw error;
+    if (error) return { failure: error.message };
 
     // Handle tags
     const { error: deleteTagsError } = await supabase.from('post_tags').delete().eq('post_id', id);
-    if (deleteTagsError) throw deleteTagsError;
+    if (deleteTagsError) return { failure: deleteTagsError.message };
 
     if (tags) {
         const tagIds = tags.split(',').filter(Boolean).map(Number);
         if (tagIds.length > 0) {
           const postTags = tagIds.map((tag_id: number) => ({ post_id: id, tag_id }));
           const { error: tagsError } = await supabase.from('post_tags').insert(postTags);
-          if (tagsError) throw tagsError;
+          if (tagsError) return { failure: tagsError.message };
         }
     }
 
 
-    if (parsedInput.broadcast_email && status === 'published') {
+    if (broadcast_email && status === 'published') {
       const { data: post } = await supabase.from('posts').select('slug').eq('id', id).single();
       if (post) {
         await broadcastNewPostEmail({
@@ -166,17 +192,17 @@ export const updatePost = adminAction
     revalidatePath('/', 'layout');
     revalidatePath(`/posts/[slug]`, 'page');
     return { success: "文章已成功更新！" };
-  });
+}
 
-export const deletePost = adminAction
-    .schema(z.object({ id: z.number() }))
-    .action(async ({ parsedInput: { id } }) => {
-        const supabase = await createClient();
-        const { error } = await supabase.from('posts').delete().eq('id', id);
+export async function deletePost(prevState: unknown, formData: FormData) {
+    const id = Number(formData.get('id'));
+    
+    const supabase = await createClient();
+    const { error } = await supabase.from('posts').delete().eq('id', id);
 
-        if (error) throw error;
+    if (error) return { failure: error.message };
 
-        revalidatePath('/admin');
-        revalidatePath('/', 'layout');
-        return { success: "文章已成功删除。" };
-    });
+    revalidatePath('/admin');
+    revalidatePath('/', 'layout');
+    return { success: "文章已成功删除。" };
+}

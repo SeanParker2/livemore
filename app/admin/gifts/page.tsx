@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { useAction } from 'next-safe-action/hooks';
+import React, { useTransition } from 'react';
 import { generateCodes } from '@/lib/actions/redemption-actions';
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +23,7 @@ interface RedemptionCode {
 
 export default function AdminGiftsPage() {
   const [codes, setCodes] = React.useState<RedemptionCode[]>([]);
+  const [isPending, startTransition] = useTransition();
 
   async function fetchCodes() {
     const supabase = createClient();
@@ -31,39 +31,26 @@ export default function AdminGiftsPage() {
     setCodes(data || []);
   }
 
-  const { execute, status } = useAction(generateCodes, {
-    onSuccess: ({ data }) => {
-      if (data && "success" in data && data.success) {
-        toast.success("成功", { description: data.success });
-        fetchCodes();
-      } else if (data && "failure" in data && data.failure) {
-        toast.error("操作失败", { description: data.failure });
-      }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error("操作失败", { description: error.serverError });
-      } else if (error.validationErrors) {
-        const validationErrorMessages = Object.values(
-          error.validationErrors,
-        )
-          .flat()
-          .join(", ");
-        toast.error("输入无效", {
-          description: validationErrorMessages,
-        });
-      }
-    },
-  });
-
-  const isPending = status === 'executing';
+  React.useEffect(() => {
+    fetchCodes();
+  }, []);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const count = Number(formData.get('count'));
-    const duration_days = Number(formData.get('duration_days'));
-    execute({ count, duration_days });
+    
+    startTransition(async () => {
+      const result = await generateCodes(null, formData);
+      
+      if (result?.success) {
+        toast.success("成功", { description: result.success });
+        fetchCodes();
+      } else if (result?.failure) {
+        toast.error("操作失败", { description: result.failure });
+      } else {
+         toast.error("操作失败", { description: "未知错误" });
+      }
+    });
   };
 
   return (

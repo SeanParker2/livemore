@@ -1,4 +1,3 @@
-import { TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 
 export function TrendingSidebar() {
@@ -7,44 +6,40 @@ export function TrendingSidebar() {
   const trendingPosts = [
     {
       id: 1,
-      title: "以太坊 ETF 获批后的资金流向全景图",
-      slug: "ethereum-etf-flow-analysis"
+      title: "比特币减半后的矿工投降周期研究",
+      slug: "bitcoin-halving-miner-capitulation"
     },
     {
       id: 2,
-      title: "RWA 赛道深度解析：代币化美债的机遇",
-      slug: "rwa-tokenized-treasuries"
+      title: "日本央行政策转向对全球流动性的影响",
+      slug: "boj-policy-shift-global-liquidity"
     },
     {
       id: 3,
-      title: "Solana 生态复苏：Memecoin 狂热背后的技术支撑",
-      slug: "solana-ecosystem-revival"
-    },
-    {
-      id: 4,
-      title: "美联储降息周期开启：加密资产的下一个十年",
-      slug: "fed-rate-cut-crypto-impact"
+      title: "RWA 赛道：贝莱德的布局与链上国债",
+      slug: "rwa-blackrock-treasuries"
     }
   ];
 
   return (
-    <div className="space-y-4 pt-4">
-      <h4 className="font-semibold text-sm border-b pb-2 flex items-center gap-2">
-        <TrendingUp className="w-4 h-4" />
+    <div>
+      <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500 border-b border-slate-200 pb-2 mb-4">
         Trending Analysis
-      </h4>
-      <ul className="space-y-4">
+      </h3>
+      <div className="space-y-4">
         {trendingPosts.map((post, index) => (
-          <li key={post.id} className="group flex items-start gap-3">
-            <span className="text-2xl font-bold text-muted-foreground/30 font-serif -mt-1 group-hover:text-primary/50 transition-colors">
+          <Link href={`/posts/${post.slug}`} key={post.id} className="flex gap-4 group">
+            <span className="text-2xl font-serif font-bold text-slate-200 group-hover:text-slate-300 transition-colors leading-none">
               0{index + 1}
             </span>
-            <Link href={`/posts/${post.slug}`} className="text-sm font-medium group-hover:text-primary transition-colors leading-snug">
-              {post.title}
-            </Link>
-          </li>
+            <div>
+              <h4 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-blue-700 transition-colors">
+                {post.title}
+              </h4>
+            </div>
+          </Link>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

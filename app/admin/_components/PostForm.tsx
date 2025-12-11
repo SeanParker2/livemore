@@ -8,14 +8,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Post } from "@/lib/types";
 import { MultiSelect } from "./MultiSelect";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/lib/actions/image-actions";
-import { useAction } from 'next-safe-action/hooks';
-import { type SafeActionFn } from 'next-safe-action';
 
 import MdEditor from 'react-markdown-editor-lite';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -33,7 +31,7 @@ function SubmitButton({ isEditing, isExecuting }: { isEditing: boolean; isExecut
 
 interface PostFormProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  action: SafeActionFn<any, any, any, any, any>;
+  action: (prevState: any, formData: FormData) => Promise<any>;
   initialData?: Post | null;
 }
 
@@ -42,28 +40,7 @@ export function PostForm({ action, initialData }: PostFormProps) {
   const [tags, setTags] = useState<{ value: string; label: string }[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tags?.map(t => t.id.toString()) || []);
   const [content, setContent] = useState(initialData?.content || '');
-
-  const { execute, status } = useAction(action, {
-    onSuccess: ({ data }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = data as any;
-      if (result?.success) {
-        toast.success("操作成功!", { description: result.success });
-      } else {
-        toast.error("操作失败", { description: "未知错误" });
-      }
-    },
-    onError: ({ error }) => {
-      let description = "发生未知错误";
-      if (error.serverError) {
-        description = error.serverError;
-      } else if (error.validationErrors) {
-        const firstError = Object.values(error.validationErrors).flat().shift();
-        description = (firstError as string) || "请检查您输入的内容。";
-      }
-      toast.error("操作失败", { description });
-    }
-  });
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -79,12 +56,12 @@ export function PostForm({ action, initialData }: PostFormProps) {
   async function handleImageUpload(file: File) {
     const formData = new FormData();
     formData.append('image', file);
-    const result = await uploadImage({ image: file });
-    if (result.data?.success) {
-      return result.data.success;
+    const result = await uploadImage(null, formData);
+    if (result?.success) {
+      return result.success;
     }
-    if (result.serverError) {
-      toast.error("图片上传失败", { description: result.serverError });
+    if (result?.failure) {
+      toast.error("图片上传失败", { description: result.failure });
     }
     return null;
   }
@@ -93,18 +70,37 @@ export function PostForm({ action, initialData }: PostFormProps) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    const dataToExecute = {
-      id: initialData?.id,
-      title: formData.get('title') || '',
-      summary: formData.get('summary') || '',
-      status: formData.get('status') || 'draft',
-      is_premium: formData.get('is_premium') === 'on',
-      broadcast_email: formData.get('broadcast_email') === 'on',
-      content: content,
-      tags: selectedTags.join(','),
-    };
+    // Append manually managed state to FormData
+    if (initialData?.id) {
+        formData.append('id', initialData.id.toString());
+    }
+    formData.append('content', content);
+    formData.append('tags', selectedTags.join(','));
+    // is_premium and broadcast_email are checkboxes/switches, 
+    // if unchecked they might not be in formData, but checked ones are 'on'.
+    // We should ensure they are handled correctly by the server action.
+    // The server action checks `formData.get('is_premium') === 'true'`?
+    // Wait, Checkbox/Switch usually sends 'on' if checked.
+    // My server action logic: `const is_premium = formData.get('is_premium') === 'true';`
+    // This is problematic if the value is 'on'. 
+    // Let's fix the formData values here to match server expectation or update server action.
+    // Easier to set explicit 'true'/'false' string in formData here.
+    
+    // Actually, let's override them to be safe
+    formData.set('is_premium', (formData.get('is_premium') === 'on').toString());
+    formData.set('broadcast_email', (formData.get('broadcast_email') === 'on').toString());
 
-    execute(dataToExecute);
+    startTransition(async () => {
+        const result = await action(null, formData);
+        if (result?.success) {
+            toast.success("操作成功!", { description: result.success });
+        } else if (result?.failure) {
+            toast.error("操作失败", { description: result.failure });
+        } else {
+             // Fallback
+             toast.error("操作失败", { description: "未知错误" });
+        }
+    });
   };
 
   return (
@@ -189,7 +185,7 @@ export function PostForm({ action, initialData }: PostFormProps) {
           </label>
         </div>
         <div className="flex justify-end">
-          <SubmitButton isEditing={isEditing} isExecuting={status === 'executing'} />
+          <SubmitButton isEditing={isEditing} isExecuting={isPending} />
         </div>
     </form>
   );

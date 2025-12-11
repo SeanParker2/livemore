@@ -1,7 +1,6 @@
 'use client';
 
 import { Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface AISummaryButtonProps {
   postSlug: string;
@@ -14,14 +13,12 @@ export function AISummaryButton({ postSlug }: AISummaryButtonProps) {
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="h-8 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary/50 hover:bg-secondary rounded-full transition-colors px-3"
+    <button
+      className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-full transition-colors"
       onClick={handleClick}
     >
-      <Sparkles className="w-3 h-3" />
-      AI 摘要
-    </Button>
+      <Sparkles className="w-3 h-3 text-purple-600" />
+      AI 核心摘要
+    </button>
   );
 }

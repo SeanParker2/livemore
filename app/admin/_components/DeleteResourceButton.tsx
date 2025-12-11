@@ -23,12 +23,14 @@ export function DeleteResourceButton({ resourceId }: { resourceId: string }) {
   async function handleDelete() {
     setLoading(true);
     try {
-      const result = await deleteResource(resourceId);
-      if (result.data?.success) {
-        toast.success(result.data.success);
+      const formData = new FormData();
+      formData.append('id', resourceId);
+      const result = await deleteResource(null, formData);
+      if (result?.success) {
+        toast.success(result.success);
         setOpen(false);
-      } else if (result.serverError) {
-        toast.error(result.serverError);
+      } else if (result?.failure) {
+        toast.error(result.failure);
       }
     } catch {
       toast.error("删除失败，请稍后重试");

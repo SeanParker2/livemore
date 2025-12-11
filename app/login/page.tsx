@@ -1,6 +1,6 @@
 'use client';
 
-import { useAction } from 'next-safe-action/hooks';
+import { useTransition } from 'react';
 import { signInWithMagicLink } from "@/lib/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,33 +8,18 @@ import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 
 export default function LoginPage() {
-  const { execute, status } = useAction(signInWithMagicLink, {
-    onSuccess: ({ data }) => {
-      if (data && "success" in data && data.success) {
-        toast.success("发送成功", { description: data.success });
-      }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error("发送失败", { description: error.serverError });
-      } else if (error.validationErrors) {
-        const validationErrorMessages = Object.values(
-          error.validationErrors,
-        )
-          .flat()
-          .join(", ");
-        toast.error("输入无效", {
-          description: validationErrorMessages,
-        });
-      }
-    },
-  });
-
-  const isPending = status === 'executing';
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (formData: FormData) => {
-    const email = formData.get('email') as string;
-    execute({ email });
+    startTransition(async () => {
+      const result = await signInWithMagicLink(null, formData);
+      
+      if (result?.error) {
+        toast.error("发送失败", { description: result.error });
+      } else if (result?.success) {
+        toast.success("发送成功", { description: result.success });
+      }
+    });
   };
 
   return (

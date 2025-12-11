@@ -11,7 +11,7 @@ const subscribeSchema = z.object({
   email: z.string().email({ message: "无效的邮箱地址。" }),
 });
 
-export async function subscribeToNewsletter(prevState: any, formData: FormData) {
+export async function subscribeToNewsletter(prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
 
   const parsed = subscribeSchema.safeParse({ email });

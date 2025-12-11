@@ -1,39 +1,50 @@
 'use server';
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createResourceSchema } from "@/lib/validations/schemas";
-import { adminAction, userAction } from "@/lib/safe-action";
 
-export const createResource = adminAction
-  .schema(createResourceSchema)
-  .action(async ({ parsedInput }) => {
-    const supabase = await createClient();
-    const { title, description, is_premium, file_path, cover_image } = parsedInput;
+export async function createResource(prevState: unknown, formData: FormData) {
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+  const is_premium = formData.get('is_premium') === 'true';
+  const file_path = formData.get('file_path') as string;
+  const cover_image = formData.get('cover_image') as string;
 
-    const { error: dbError } = await supabase.from('resources').insert({
-      title,
-      description,
-      is_premium,
-      file_path,
-      cover_image,
-    });
+  const parsed = createResourceSchema.safeParse({ title, description, is_premium, file_path, cover_image });
+  if (!parsed.success) {
+      return { failure: "输入无效" };
+  }
 
-    if (dbError) {
-      console.error("数据库插入失败:", dbError);
-      throw new Error(`数据库插入失败: ${dbError.message}`);
-    }
-
-    revalidatePath('/admin/resources');
-    revalidatePath('/resources');
-    return { success: "资源创建成功！" };
+  const supabase = await createClient();
+  const { error: dbError } = await supabase.from('resources').insert({
+    title,
+    description,
+    is_premium,
+    file_path,
+    cover_image,
   });
 
-export const downloadResource = userAction
-  .schema(z.string())
-  .action(async ({ parsedInput: resourceId, ctx: { profile } }) => {
+  if (dbError) {
+    console.error("数据库插入失败:", dbError);
+    return { failure: `数据库插入失败: ${dbError.message}` };
+  }
+
+  revalidatePath('/admin/resources');
+  revalidatePath('/resources');
+  return { success: "资源创建成功！" };
+}
+
+export async function downloadResource(resourceId: string) {
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 重新获取 profile 以检查 billing_status
+    let profile = null;
+    if (user) {
+        const { data } = await supabase.from('profiles').select('billing_status').eq('id', user.id).single();
+        profile = data;
+    }
 
     const { data: resourceData } = await supabase
       .from('resources')
@@ -42,14 +53,14 @@ export const downloadResource = userAction
       .single();
 
     if (!resourceData) {
-      throw new Error("资源不存在");
+      return { failure: "资源不存在" };
     }
 
     const isVip = profile?.billing_status === 'premium' || profile?.billing_status === 'founder';
     const canDownload = !resourceData.is_premium || isVip;
 
     if (!canDownload) {
-      throw new Error("订阅会员专享资源");
+      return { failure: "订阅会员专享资源" };
     }
 
     const { data, error } = await supabase.storage
@@ -58,17 +69,16 @@ export const downloadResource = userAction
 
     if (error) {
       console.error("生成下载链接失败:", error);
-      throw new Error("无法获取下载链接");
+      return { failure: "无法获取下载链接" };
     }
 
     await supabase.rpc('increment_resource_download', { p_resource_id: resourceId });
 
-    return { url: data.signedUrl };
-  });
+    return { success: data.signedUrl };
+}
 
-export const deleteResource = adminAction
-  .schema(z.string())
-  .action(async ({ parsedInput: id }) => {
+export async function deleteResource(prevState: unknown, formData: FormData) {
+    const id = formData.get('id') as string;
     const supabase = await createClient();
 
     // 1. 获取资源信息以获取文件路径
@@ -79,7 +89,7 @@ export const deleteResource = adminAction
       .single();
 
     if (fetchError || !resource) {
-      throw new Error("资源不存在或已被删除");
+      return { failure: "资源不存在或已被删除" };
     }
 
     // 2. 从存储桶删除文件
@@ -98,10 +108,10 @@ export const deleteResource = adminAction
     const { error: dbError } = await supabase.from('resources').delete().eq('id', id);
 
     if (dbError) {
-      throw new Error(`删除失败: ${dbError.message}`);
+      return { failure: `删除失败: ${dbError.message}` };
     }
 
     revalidatePath('/admin/resources');
     revalidatePath('/resources');
     return { success: "资源已成功删除" };
-  });
+}

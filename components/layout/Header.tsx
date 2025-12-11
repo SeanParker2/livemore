@@ -16,13 +16,6 @@ import { MobileNav } from "./MobileNav";
 import { SiteSearch } from "@/components/SiteSearch";
 import { ThemeToggle } from "../ThemeToggle";
 
-import { Libre_Baskerville } from 'next/font/google';
-
-const libreBaskerville = Libre_Baskerville({
-  subsets: ['latin'],
-  weight: '700',
-});
-
 export async function Header() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -40,92 +33,85 @@ export async function Header() {
   }
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="h-8 bg-primary text-primary-foreground flex items-center justify-center text-sm">
-        ✨ 全新深度分析报告，马上领取 →
-      </div>
-      <header className="border-b border-border/40">
-        <div className="container flex h-14 max-w-screen-2xl items-center">
-          <MobileNav isFounder={billingStatus === 'founder'} />
-          <div className="flex-1 md:flex md:items-center md:justify-between">
-            <div className="hidden md:flex md:items-center md:gap-6">
-              <Link href="/" className="mr-6 flex items-center space-x-2">
-                <span className={`font-bold text-2xl tracking-tight ${libreBaskerville.className}`}>Signal & Cipher</span>
-              </Link>
-              <nav className="flex items-center gap-6 text-sm">
-                <Link
-                  href="/archive"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  归档
-                </Link>
-                <Link
-                  href="/about"
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  关于
-                </Link>
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-sm">
+      <div className="container mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+           <Link href="/" className="flex items-center gap-2">
+              <div className="h-5 w-5 bg-slate-900 rounded-sm"></div>
+              <span className="font-serif font-bold text-xl tracking-tight text-slate-900">Signal & Cipher</span>
+           </Link>
+        </div>
 
-                {billingStatus === 'founder' && (
-                  <Link
-                    href="/admin"
-                    className="font-semibold text-primary transition-colors hover:text-primary/80"
-                  >
-                    管理后台
-                  </Link>
-                )}
-              </nav>
-            </div>
-            <div className="flex flex-1 items-center justify-end space-x-2">
-              <SiteSearch />
-              <ThemeToggle />
-              <nav className="flex items-center gap-4">
-                {user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.user_metadata.avatar_url} alt={user.user_metadata.full_name || user.email} />
-                          <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">{user.user_metadata.full_name || user.email}</p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500">
+          <Link href="/" className="hover:text-slate-900 transition-colors">Markets</Link>
+          <Link href="/archive" className="hover:text-slate-900 transition-colors">Intelligence</Link>
+          <Link href="/archive" className="hover:text-slate-900 transition-colors">Archive</Link>
+          
+          {billingStatus === 'founder' && (
+             <Link href="/admin" className="hover:text-slate-900 transition-colors font-bold text-amber-600">Admin</Link>
+          )}
+
+          <div className="flex items-center gap-4 ml-4">
+            <SiteSearch />
+            <ThemeToggle />
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata.avatar_url} alt={user.user_metadata.full_name || user.email} />
+                      <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.user_metadata.full_name || user.email}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {billingStatus === 'founder' && (
+                    <>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard">用户中心</Link>
+                        <Link href="/admin">管理后台</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <form action={signOut}>
-                        <DropdownMenuItem asChild>
-                          <button className="w-full text-left">退出登录</button>
-                        </DropdownMenuItem>
-                      </form>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/login">登录</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/subscribe">订阅</Link>
-                    </Button>
-                  </>
-                )}
-              </nav>
-            </div>
+                    </>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">用户中心</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <form action={signOut}>
+                    <DropdownMenuItem asChild>
+                      <button className="w-full text-left">退出登录</button>
+                    </DropdownMenuItem>
+                  </form>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+               <Link href="/subscribe" className="text-slate-900 font-bold hover:opacity-80 transition-opacity">
+                 Subscribe
+               </Link>
+            )}
           </div>
+        </nav>
+
+        <div className="flex md:hidden items-center gap-4">
+           <SiteSearch />
+           {!user && (
+             <Link href="/subscribe" className="text-sm font-bold text-slate-900">
+               Subscribe
+             </Link>
+           )}
+           <MobileNav isFounder={billingStatus === 'founder'} />
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
   );
 }

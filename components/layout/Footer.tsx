@@ -1,51 +1,17 @@
 import Link from "next/link";
-import { NewsletterForm } from "@/components/forms/NewsletterForm";
 
 export function Footer() {
   return (
-    <footer className="bg-stone-950 text-stone-200 overflow-hidden">
-      <div className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* Brand & Ethos */}
-          <div className="md:col-span-4">
-            <h2 className="font-serif font-bold text-3xl tracking-tight">Livemore</h2>
-            <p className="mt-4 text-sm text-stone-400">
-              为现代投资者提供独立、深度的市场分析。
-            </p>
+    <footer className="border-t border-slate-200 bg-slate-50 mt-12">
+      <div className="container mx-auto max-w-6xl px-4 py-12">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="font-serif font-bold text-lg text-slate-900">Signal & Cipher</span>
+          
+          <div className="flex items-center gap-6 text-xs text-slate-500">
+             <Link href="/privacy" className="hover:text-slate-900 transition-colors">Privacy</Link>
+             <Link href="/terms" className="hover:text-slate-900 transition-colors">Terms</Link>
+             <p>© {new Date().getFullYear()} Signal & Cipher. All rights reserved.</p>
           </div>
-
-          {/* Links */}
-          <div className="md:col-span-4 grid grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-sm font-semibold tracking-wider uppercase text-stone-400">Product</h3>
-              <ul className="mt-4 space-y-2">
-                <li><Link href="/archive" className="hover:text-white transition-colors">Archive</Link></li>
-                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold tracking-wider uppercase text-stone-400">Legal</h3>
-              <ul className="mt-4 space-y-2">
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
-                <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
-                <li><Link href="/disclaimer" className="hover:text-white transition-colors">Disclaimer</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Newsletter */}
-          <div className="md:col-span-4">
-            <h3 className="text-sm font-semibold tracking-wider uppercase text-stone-400">订阅每周简报</h3>
-            <div className="mt-4">
-              <NewsletterForm isDark={true} />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="relative">
-        <div className="text-[12vw] leading-none font-serif font-black text-white/5 select-none text-center overflow-hidden whitespace-nowrap">
-          LIVEMORE
         </div>
       </div>
     </footer>

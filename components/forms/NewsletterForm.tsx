@@ -30,18 +30,22 @@ export function NewsletterForm({ isDark = false, className }: { isDark?: boolean
         <Input
           type="email"
           name="email"
-          placeholder="Enter your email"
+          placeholder="name@company.com"
           required
-          className={isDark ? 'h-10 text-sm bg-stone-800 border-stone-700 text-white placeholder:text-stone-500 focus:ring-white' : 'h-10 text-sm'}
+          className={isDark 
+            ? 'w-full px-3 py-2 bg-white/10 border border-white/20 rounded text-sm text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 h-10' 
+            : 'h-10 text-sm'}
         />
         <Button 
           type="submit" 
           aria-disabled={isPending}
           disabled={isPending}
           size="default"
-          className={isDark ? 'h-10 text-sm w-full bg-white text-black hover:bg-stone-200' : 'h-10 text-sm w-full'}
+          className={isDark 
+            ? 'w-full bg-white text-slate-900 font-bold text-sm py-2 rounded hover:bg-slate-100 transition-colors h-10' 
+            : 'h-10 text-sm w-full'}
         >
-          {isPending ? '订阅中...' : '订阅'}
+          {isPending ? 'Subscribing...' : 'Subscribe Now'}
         </Button>
       </div>
     </form>

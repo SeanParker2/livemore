@@ -1,43 +1,42 @@
 'use client';
 
-import { useAction } from 'next-safe-action/hooks';
-import { redeemCode } from '@/lib/actions/redemption-actions';
-import { toast } from "sonner";
+import { useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { redeemCode } from "@/lib/actions/redemption-actions";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 function SubmitButton({ isPending }: { isPending: boolean }) {
-  return <Button type="submit" disabled={isPending} className="w-full">{isPending ? '兑换中...' : '兑换'}</Button>;
+  return (
+    <Button type="submit" className="w-full" disabled={isPending}>
+      {isPending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          正在兑换...
+        </>
+      ) : (
+        "立即兑换"
+      )}
+    </Button>
+  );
 }
 
 export default function RedeemPage() {
-  const { execute, status } = useAction(redeemCode, {
-    onSuccess: ({ data }) => {
-      if (data?.success) {
-        toast.success("兑换成功！", { description: data.success });
-      }
-    },
-    onError: ({ error }) => {
-      if (error.serverError) {
-        toast.error("兑换失败", { description: error.serverError });
-      } else if (error.validationErrors) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const validationErrors = error.validationErrors as any;
-        const firstError = Object.values(validationErrors).flat().shift() as string;
-        if (firstError) {
-          toast.error("输入无效", { description: firstError });
-        }
-      }
-    },
-  });
-
-  const isPending = status === 'executing';
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (formData: FormData) => {
-    const code = formData.get('code') as string;
-    execute({ code });
+    startTransition(async () => {
+      const result = await redeemCode(null, formData);
+      
+      if (result?.failure) {
+        toast.error("兑换失败", { description: result.failure });
+      } else if (result?.success) {
+        toast.success("兑换成功", { description: result.success });
+      }
+    });
   };
 
   return (
