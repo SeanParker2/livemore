@@ -20,13 +20,13 @@ export function MobileNav({ isFounder }: MobileNavProps) {
   const [open, setOpen] = useState(false);
 
   const navLinks = [
-    { href: '/archive', label: '归档' },
-    { href: '/about', label: '关于' },
-    { href: '/subscribe', label: '订阅' },
+    { href: '/archive', label: 'Intelligence' },
+    { href: '/markets', label: 'Markets' },
+    { href: '/signals', label: 'Signals' },
   ];
 
   if (isFounder) {
-    navLinks.push({ href: '/admin', label: '创作' });
+    navLinks.push({ href: '/admin', label: 'Admin' });
   }
 
   return (
@@ -40,8 +40,11 @@ export function MobileNav({ isFounder }: MobileNavProps) {
       <SheetContent side="left">
         <div className="flex flex-col h-full">
           <div className="border-b pb-4">
-            <Link href="/" className="font-serif text-2xl font-bold" onClick={() => setOpen(false)}>
-              Livemore
+            <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+              <div className="w-8 h-8 bg-slate-900 flex items-center justify-center">
+                  <span className="text-white font-serif font-bold text-lg italic">S</span>
+              </div>
+              <span className="font-serif font-bold text-xl tracking-tight text-slate-900">Signal & Cipher</span>
             </Link>
           </div>
           <nav className="grow mt-6">

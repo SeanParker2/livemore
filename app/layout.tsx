@@ -37,6 +37,7 @@ export const metadata: Metadata = {
 };
 
 import { Header } from "@/components/layout/Header";
+import { Ticker } from "@/components/layout/Ticker";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -65,6 +66,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="relative flex min-h-screen flex-col bg-background">
+            <Ticker />
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />

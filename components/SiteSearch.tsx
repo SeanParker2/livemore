@@ -58,18 +58,13 @@ export function SiteSearch() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="relative h-9 w-9 p-0 xl:h-10 xl:w-60 xl:justify-start xl:px-3 xl:py-2"
+      <button
+        className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
         onClick={() => setOpen(true)}
       >
-        <SearchIcon className="h-4 w-4 xl:mr-2" aria-hidden="true" />
-        <span className="hidden xl:inline-flex">搜索文章...</span>
-        <span className="sr-only">搜索文章</span>
-        <kbd className="pointer-events-none absolute right-1.5 top-2 hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium opacity-100 xl:flex">
-          <span className="text-sm">⌘</span>K
-        </kbd>
-      </Button>
+        <SearchIcon className="h-4 w-4" aria-hidden="true" />
+        <span className="sr-only">搜索</span>
+      </button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput
           placeholder="输入关键词搜索..."
