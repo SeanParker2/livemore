@@ -1,10 +1,5 @@
 import { SupabaseClient, User } from '@supabase/supabase-js';
-
-export type Profile = {
-  id: string;
-  billing_status: string;
-  // Add other profile properties here
-};
+import { Profile } from '@/lib/types';
 
 export async function getCurrentUser(supabase: SupabaseClient) {
   const { data: { user }, error } = await supabase.auth.getUser();

@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { updateProfile } from '@/lib/actions/user-actions';
 
-const initialState = {
+import { ActionResponse } from '@/lib/types';
+
+const initialState: ActionResponse = {
   success: false,
   message: '',
 };

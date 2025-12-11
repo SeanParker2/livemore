@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ViewTracker } from "./_components/ViewTracker";
 import { RelatedPosts } from "@/components/RelatedPosts";
+import { Post } from "@/lib/types";
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,7 @@ export async function generateMetadata({
   const supabase = await createClient();
   const { data: post } = await supabase
     .from("posts")
-    .select("title, excerpt")
+    .select("title, summary")
     .eq("slug", params.slug)
     .single();
 
@@ -29,15 +30,9 @@ export async function generateMetadata({
 
   return {
     title: post.title,
-    description: post.excerpt,
+    description: post.summary,
   };
 }
-
-type Tag = {
-  id: number;
-  name: string;
-  slug: string;
-};
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
@@ -140,7 +135,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
       )}
 
       {post.tags && post.tags.length > 0 && (
-        <RelatedPosts postId={post.id} tagIds={post.tags.map((tag: Tag) => tag.id)} />
+        <RelatedPosts postId={post.id} tagIds={post.tags.map((tag: Post['tags'][number]) => tag.id)} />
       )}
     </article>
   );

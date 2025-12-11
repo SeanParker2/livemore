@@ -4,17 +4,18 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { ActionResponse } from "@/lib/types";
 
 const updateProfileSchema = z.object({
   fullName: z.string().min(1, "昵称不能为空"),
 });
 
-export async function updateProfile(prevState: unknown, formData: FormData) {
+export async function updateProfile(prevState: unknown, formData: FormData): Promise<ActionResponse> {
     const fullName = formData.get('fullName') as string;
     
     const parsed = updateProfileSchema.safeParse({ fullName });
     if (!parsed.success) {
-        return { success: false, message: "昵称不能为空" };
+        return { success: false, message: "昵称不能为空", errors: parsed.error.flatten().fieldErrors };
     }
 
     const supabase = await createClient();

@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createResourceSchema } from "@/lib/validations/schemas";
+import { ActionResponse } from "@/lib/types";
 
-export async function createResource(prevState: unknown, formData: FormData) {
+export async function createResource(prevState: unknown, formData: FormData): Promise<ActionResponse> {
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
   const is_premium = formData.get('is_premium') === 'true';
@@ -13,7 +14,7 @@ export async function createResource(prevState: unknown, formData: FormData) {
 
   const parsed = createResourceSchema.safeParse({ title, description, is_premium, file_path, cover_image });
   if (!parsed.success) {
-      return { failure: "输入无效" };
+      return { success: false, message: "输入无效", errors: parsed.error.flatten().fieldErrors };
   }
 
   const supabase = await createClient();
@@ -27,15 +28,15 @@ export async function createResource(prevState: unknown, formData: FormData) {
 
   if (dbError) {
     console.error("数据库插入失败:", dbError);
-    return { failure: `数据库插入失败: ${dbError.message}` };
+    return { success: false, message: `数据库插入失败: ${dbError.message}` };
   }
 
   revalidatePath('/admin/resources');
   revalidatePath('/resources');
-  return { success: "资源创建成功！" };
+  return { success: true, message: "资源创建成功！" };
 }
 
-export async function downloadResource(resourceId: string) {
+export async function downloadResource(resourceId: string): Promise<ActionResponse<string>> {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -53,14 +54,14 @@ export async function downloadResource(resourceId: string) {
       .single();
 
     if (!resourceData) {
-      return { failure: "资源不存在" };
+      return { success: false, message: "资源不存在" };
     }
 
     const isVip = profile?.billing_status === 'premium' || profile?.billing_status === 'founder';
     const canDownload = !resourceData.is_premium || isVip;
 
     if (!canDownload) {
-      return { failure: "订阅会员专享资源" };
+      return { success: false, message: "订阅会员专享资源" };
     }
 
     const { data, error } = await supabase.storage
@@ -69,15 +70,15 @@ export async function downloadResource(resourceId: string) {
 
     if (error) {
       console.error("生成下载链接失败:", error);
-      return { failure: "无法获取下载链接" };
+      return { success: false, message: "无法获取下载链接" };
     }
 
     await supabase.rpc('increment_resource_download', { p_resource_id: resourceId });
 
-    return { success: data.signedUrl };
+    return { success: true, data: data.signedUrl };
 }
 
-export async function deleteResource(prevState: unknown, formData: FormData) {
+export async function deleteResource(prevState: unknown, formData: FormData): Promise<ActionResponse> {
     const id = formData.get('id') as string;
     const supabase = await createClient();
 
@@ -89,7 +90,7 @@ export async function deleteResource(prevState: unknown, formData: FormData) {
       .single();
 
     if (fetchError || !resource) {
-      return { failure: "资源不存在或已被删除" };
+      return { success: false, message: "资源不存在或已被删除" };
     }
 
     // 2. 从存储桶删除文件
@@ -99,19 +100,22 @@ export async function deleteResource(prevState: unknown, formData: FormData) {
         .remove([resource.file_path]);
       
       if (storageError) {
-        console.error("Failed to delete file from storage:", storageError);
-        // 继续执行，即使文件删除失败也要删除数据库记录
+          console.error("删除文件失败:", storageError);
+          // 继续执行，虽然文件没删掉，但记录要删
       }
     }
 
     // 3. 删除数据库记录
-    const { error: dbError } = await supabase.from('resources').delete().eq('id', id);
+    const { error: dbError } = await supabase
+      .from('resources')
+      .delete()
+      .eq('id', id);
 
     if (dbError) {
-      return { failure: `删除失败: ${dbError.message}` };
+      return { success: false, message: dbError.message };
     }
 
     revalidatePath('/admin/resources');
     revalidatePath('/resources');
-    return { success: "资源已成功删除" };
+    return { success: true, message: "资源删除成功" };
 }

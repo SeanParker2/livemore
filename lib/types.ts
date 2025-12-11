@@ -1,20 +1,54 @@
+import { z } from "zod";
+import { createResourceSchema, postSchema, profileSchema, redemptionCodeSchema } from "@/lib/validations/schemas";
 
-export interface Post {
+/**
+ * Standard API Response structure for Server Actions.
+ */
+export type ActionResponse<T = void> = {
+  success: boolean;
+  message?: string;
+  errors?: Record<string, string[]>;
+  data?: T;
+};
+
+/**
+ * Profile type inferred from profileSchema with database fields.
+ * Source: lib/validations/schemas.ts
+ */
+export type Profile = z.infer<typeof profileSchema> & {
+  id: string;
+};
+
+/**
+ * RedemptionCode type inferred from redemptionCodeSchema with database fields.
+ * Source: lib/validations/schemas.ts
+ */
+export type RedemptionCode = z.infer<typeof redemptionCodeSchema> & {
+  id: string;
+  created_at?: string;
+};
+
+/**
+ * Post type inferred from postSchema with database fields.
+ * Source: lib/validations/schemas.ts
+ */
+export type Post = z.infer<typeof postSchema> & {
   id: number;
   created_at: string;
-  title: string;
-  content: string;
-  slug: string;
-  is_premium: boolean;
-  summary: string;
-  status: 'draft' | 'published' | 'archived';
+  updated_at?: string;
   author: Profile;
   tags: { id: number; name: string; slug: string }[];
-}
+  slug: string;
+};
 
-export interface Profile {
+/**
+ * Resource type inferred from createResourceSchema with database fields.
+ * Source: lib/validations/schemas.ts
+ */
+export type Resource = z.infer<typeof createResourceSchema> & {
   id: string;
-  full_name: string;
-  avatar_url: string;
-  billing_status: string;
-}
+  created_at: string;
+  downloads_count: number;
+  // Optional profile relation often joined in queries
+  profile?: Profile | null;
+};

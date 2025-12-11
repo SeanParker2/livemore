@@ -3,19 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { downloadResource } from "@/lib/actions/resource-actions";
 import { useToast } from "@/components/ui/use-toast";
-
-interface Resource {
-  id: string;
-  title: string;
-  description: string;
-  file_path: string;
-  cover_image: string;
-  is_premium: boolean;
-  downloads_count: number;
-  profile: {
-    billing_status: string | null;
-  } | null;
-}
+import { Resource } from "@/lib/types";
 
 interface Props {
   resource: Resource;
@@ -35,9 +23,11 @@ export default function ResourceDownloadButton({ resource, userId }: Props) {
 
     if (result?.success) {
       toast({ title: "已开始下载", description: "文件将在新标签页中打开。" });
-      window.open(result.success, "_blank");
+      if (result.data) {
+        window.open(result.data, "_blank");
+      }
     } else {
-      toast({ title: "下载失败", description: result?.failure || "未知错误", variant: "destructive" });
+      toast({ title: "下载失败", description: result?.message || "未知错误", variant: "destructive" });
     }
   };
 

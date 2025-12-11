@@ -2,18 +2,10 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { Lock } from 'lucide-react';
 import { AISummaryButton } from "./AISummaryButton";
+import { Post } from "@/lib/types";
 
 interface ArticleCardProps {
-  post: {
-    id: string;
-    slug: string;
-    title: string;
-    summary: string;
-    content: string;
-    created_at: string;
-    is_premium: boolean;
-    tags: { name: string }[];
-  };
+  post: Post;
 }
 
 export function ArticleCard({ post }: ArticleCardProps) {
@@ -31,7 +23,7 @@ export function ArticleCard({ post }: ArticleCardProps) {
             <Lock className="w-3 h-3" /> PREMIUM
           </span>
         ) : (
-          <span>{Math.ceil(post.content.length / 500)} MIN READ</span>
+          <span>{Math.ceil((post.content || "").length / 500)} MIN READ</span>
         )}
       </div>
       

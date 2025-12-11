@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { Resend } from 'resend';
 import WelcomeEmail from '@/components/emails/WelcomeEmail';
+import { ActionResponse } from '@/lib/types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,7 +12,7 @@ const subscribeSchema = z.object({
   email: z.string().email({ message: "无效的邮箱地址。" }),
 });
 
-export async function subscribeToNewsletter(prevState: unknown, formData: FormData) {
+export async function subscribeToNewsletter(prevState: unknown, formData: FormData): Promise<ActionResponse> {
   const email = formData.get('email') as string;
 
   const parsed = subscribeSchema.safeParse({ email });
@@ -19,8 +20,9 @@ export async function subscribeToNewsletter(prevState: unknown, formData: FormDa
   if (!parsed.success) {
     const firstError = Object.values(parsed.error.flatten().fieldErrors).flat()[0];
     return { 
-      error: firstError || '输入无效', 
-      validationErrors: parsed.error.flatten().fieldErrors 
+      success: false,
+      message: firstError || '输入无效', 
+      errors: parsed.error.flatten().fieldErrors 
     };
   }
 
@@ -29,10 +31,10 @@ export async function subscribeToNewsletter(prevState: unknown, formData: FormDa
 
   if (dbError) {
     if (dbError.code === '23505') { // Unique constraint violation
-      return { error: '您已订阅，请勿重复操作。' };
+      return { success: false, message: '您已订阅，请勿重复操作。' };
     }
     console.error('Database error:', dbError);
-    return { error: '发生错误，请稍后重试。' };
+    return { success: false, message: '发生错误，请稍后重试。' };
   }
 
   try {
@@ -47,5 +49,5 @@ export async function subscribeToNewsletter(prevState: unknown, formData: FormDa
     // Do not block the process, just log the error
   }
 
-  return { success: '订阅成功！感谢您的关注。' };
+  return { success: true, message: '订阅成功！感谢您的关注。' };
 }

@@ -31,10 +31,10 @@ export default function RedeemPage() {
     startTransition(async () => {
       const result = await redeemCode(null, formData);
       
-      if (result?.failure) {
-        toast.error("兑换失败", { description: result.failure });
-      } else if (result?.success) {
-        toast.success("兑换成功", { description: result.success });
+      if (!result?.success) {
+        toast.error("兑换失败", { description: result.message });
+      } else {
+        toast.success("兑换成功", { description: result.message });
       }
     });
   };

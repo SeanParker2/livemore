@@ -8,17 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from '@/lib/supabase/client';
 import { Label } from '@/components/ui/label';
+import { RedemptionCode } from '@/lib/types';
 
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return <Button type="submit" disabled={isPending}>{isPending ? '生成中...' : '生成兑换码'}</Button>;
-}
-
-interface RedemptionCode {
-  id: string;
-  code: string;
-  duration_days: number;
-  is_used: boolean;
-  used_by: string | null;
 }
 
 export default function AdminGiftsPage() {
@@ -43,12 +36,10 @@ export default function AdminGiftsPage() {
       const result = await generateCodes(null, formData);
       
       if (result?.success) {
-        toast.success("成功", { description: result.success });
+        toast.success("成功", { description: result.message });
         fetchCodes();
-      } else if (result?.failure) {
-        toast.error("操作失败", { description: result.failure });
       } else {
-         toast.error("操作失败", { description: "未知错误" });
+        toast.error("操作失败", { description: result.message || "未知错误" });
       }
     });
   };

@@ -57,11 +57,11 @@ export function PostForm({ action, initialData }: PostFormProps) {
     const formData = new FormData();
     formData.append('image', file);
     const result = await uploadImage(null, formData);
-    if (result?.success) {
-      return result.success;
+    if (result?.success && result.data) {
+      return result.data;
     }
-    if (result?.failure) {
-      toast.error("图片上传失败", { description: result.failure });
+    if (!result?.success) {
+      toast.error("图片上传失败", { description: result.message });
     }
     return null;
   }
@@ -93,12 +93,9 @@ export function PostForm({ action, initialData }: PostFormProps) {
     startTransition(async () => {
         const result = await action(null, formData);
         if (result?.success) {
-            toast.success("操作成功!", { description: result.success });
-        } else if (result?.failure) {
-            toast.error("操作失败", { description: result.failure });
+            toast.success("操作成功!", { description: result.message });
         } else {
-             // Fallback
-             toast.error("操作失败", { description: "未知错误" });
+            toast.error("操作失败", { description: result.message });
         }
     });
   };

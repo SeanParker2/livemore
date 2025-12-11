@@ -60,20 +60,21 @@ export default function CreateResourcePage() {
       }
     }
 
-    const result = await createResource({
-      title: formData.get('title') as string,
-      description: formData.get('description') as string,
-      is_premium: formData.get('is_premium') === 'on',
-      file_path: resourceFilePath,
-      cover_image: coverImagePath,
-    });
+    formData.set('file_path', resourceFilePath);
+    if (coverImagePath) {
+      formData.set('cover_image', coverImagePath);
+    }
+    // Checkbox sends 'on' if checked, otherwise null. Convert to 'true'/'false' for server action if needed,
+    // but createResource expects 'true' string for boolean check.
+    // formData.get('is_premium') is 'on' or null.
+    formData.set('is_premium', formData.get('is_premium') === 'on' ? 'true' : 'false');
 
-    if (result.validationError) {
-      // Handle validation errors
-    } else if (result.serverError) {
-      toast.error("操作失败", { description: result.serverError });
-    } else if (result.data) {
-      toast.success("成功", { description: result.data.message });
+    const result = await createResource(null, formData);
+
+    if (!result.success) {
+      toast.error("操作失败", { description: result.message });
+    } else {
+      toast.success("成功", { description: result.message });
       router.push('/admin/resources');
     }
   };

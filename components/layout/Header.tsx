@@ -10,12 +10,10 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { Search } from "lucide-react";
 
 import { signOut } from "@/lib/actions/auth-actions";
 import { MobileNav } from "./MobileNav";
 import { SiteSearch } from "@/components/SiteSearch";
-import { ThemeToggle } from "../ThemeToggle";
 
 export async function Header() {
   const supabase = await createClient();

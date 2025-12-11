@@ -28,10 +28,10 @@ export function DeletePostButton({ postId }: { postId: number }) {
       formData.append('id', postId.toString());
       const result = await deletePost(null, formData);
       if (result?.success) {
-        toast.success(result.success);
+        toast.success(result.message);
         setOpen(false);
       } else {
-        toast.error(result?.failure || "删除失败");
+        toast.error(result?.message || "删除失败");
       }
     } catch {
       toast.error("删除失败，请稍后重试");

@@ -13,10 +13,10 @@ export function NewsletterWidget() {
     startTransition(async () => {
       const result = await subscribeToNewsletter(null, formData);
       
-      if (result.error) {
-        toast.error("订阅失败", { description: result.error });
-      } else if (result.success) {
-        toast.success("订阅成功", { description: result.success });
+      if (!result.success) {
+        toast.error("订阅失败", { description: result.message });
+      } else {
+        toast.success("订阅成功", { description: result.message });
         formRef.current?.reset();
       }
     });

@@ -5,31 +5,9 @@ import { FeaturedPost } from "@/components/home/FeaturedPost";
 import { LatestIntelligence } from "@/components/home/LatestIntelligence";
 import { NewsletterWidget } from "@/components/home/NewsletterWidget";
 import { Pagination } from "@/components/ui/pagination";
+import { Post } from "@/lib/types";
 
 const POSTS_PER_PAGE = 10;
-
-interface Author {
-  avatar_url: string;
-  full_name: string;
-}
-
-interface Tag {
-  id: number;
-  name: string;
-  slug: string;
-}
-
-interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  is_premium: boolean;
-  summary: string;
-  content: string;
-  created_at: string;
-  author: Author;
-  tags: Tag[];
-}
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const resolvedSearchParams = await searchParams;

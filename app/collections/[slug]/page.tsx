@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Post } from "@/lib/types";
 
 export async function generateMetadata({
   params,
@@ -29,26 +30,11 @@ export async function generateMetadata({
   };
 }
 
-interface Tag {
-  slug: string;
-  name: string;
-}
-
-interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  excerpt: string;
-  created_at: string;
-  tags: Tag[];
-}
-
 export default async function CollectionDetailPage({ params }: { params: { slug: string } }) {
   const supabase = await createClient();
   const { data: collection } = await supabase
     .from("collections")
-    .select("*, posts(*, tags(name, slug))")
+    .select("*, posts(*, tags(id, name, slug))")
     .eq("slug", params.slug)
     .eq("is_published", true)
     .single();
@@ -61,7 +47,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
   // We need a separate query to get the ordered posts.
   const { data: orderedPostsData } = await supabase
     .from('collection_posts')
-    .select('posts(*, tags(name, slug))')
+    .select('posts(*, tags(id, name, slug))')
     .eq('collection_id', collection.id)
     .order('display_order', { ascending: true });
 
@@ -101,12 +87,12 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
                     <div className="flex-1">
                       <CardTitle className="text-2xl mb-2 group-hover:underline">{post.title}</CardTitle>
                       <p className="text-muted-foreground mb-4 line-clamp-2">
-                        {post.summary || post.excerpt}
+                        {post.summary}
                       </p>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         <div className="flex gap-2">
-                          {post.tags.slice(0, 3).map((tag: Tag) => (
+                          {post.tags.slice(0, 3).map((tag) => (
                             <Badge key={tag.slug} variant="secondary">{tag.name}</Badge>
                           ))}
                         </div>

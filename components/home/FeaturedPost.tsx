@@ -1,12 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
+import { Post } from "@/lib/types";
 
 interface FeaturedPostProps {
-  post: {
-    title: string;
-    summary: string;
-    slug: string;
-  };
+  post: Post;
 }
 
 export function FeaturedPost({ post }: FeaturedPostProps) {

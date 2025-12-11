@@ -9,19 +9,14 @@ import { Search as SearchIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-
-interface Post {
-  id: string;
-  title: string;
-  slug: string;
-}
+import { Post } from '@/lib/types';
 
 export function Search() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
   const [debouncedQuery] = useDebounce(query, 500);
-  const [results, setResults] = React.useState<Post[]>([]);
+  const [results, setResults] = React.useState<Pick<Post, 'id' | 'title' | 'slug'>[]>([]);
   const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -58,7 +53,7 @@ export function Search() {
   }, [debouncedQuery]);
 
   const handleSelect = (slug: string) => {
-    router.push(`/blog/${slug}`);
+    router.push(`/posts/${slug}`);
     setOpen(false);
     setQuery('');
   };

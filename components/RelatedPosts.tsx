@@ -2,26 +2,16 @@ import { getRelatedPosts } from "@/lib/actions/post-actions";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Post } from "@/lib/types";
 
 interface RelatedPostsProps {
-  postId: string;
+  postId: number;
   tagIds: number[];
 }
 
-type Tag = {
-  slug: string;
-  name: string;
-};
-
-type Post = {
-  slug: string;
-  title: string;
-  created_at: string;
-  tags: Tag[];
-};
-
 export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
-  const relatedPosts = await getRelatedPosts(postId, tagIds);
+  const result = await getRelatedPosts(postId, tagIds);
+  const relatedPosts = result?.success ? result.data : [];
 
   if (!relatedPosts || relatedPosts.length === 0) {
     return null;
@@ -41,7 +31,7 @@ export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                   <div className="flex gap-2">
-                    {post.tags.slice(0, 2).map((tag: Tag) => (
+                    {post.tags.slice(0, 2).map((tag) => (
                       <Badge key={tag.slug} variant="secondary">{tag.name}</Badge>
                     ))}
                   </div>

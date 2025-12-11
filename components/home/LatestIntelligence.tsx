@@ -1,16 +1,7 @@
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-
-interface Post {
-  id: string;
-  title: string;
-  slug: string;
-  summary: string;
-  is_premium: boolean;
-  created_at: string;
-  tags?: { name: string }[];
-}
+import { Post } from "@/lib/types";
 
 interface LatestIntelligenceProps {
   posts: Post[];
@@ -21,7 +12,7 @@ export function LatestIntelligence({ posts }: LatestIntelligenceProps) {
     <div className="space-y-10">
         <div className="flex items-center justify-between">
             <h3 className="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest">Latest Intelligence</h3>
-            <div className="h-[1px] flex-1 bg-slate-100 ml-4"></div>
+            <div className="h-px flex-1 bg-slate-100 ml-4"></div>
         </div>
 
         {posts.map((post) => (
@@ -52,7 +43,7 @@ export function LatestIntelligence({ posts }: LatestIntelligenceProps) {
                 </div>
                 <div className="hidden md:block md:col-span-1 h-full min-h-[100px] bg-slate-100 relative overflow-hidden group-hover:opacity-90 transition-opacity">
                     <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-mono text-xs">
-                        // IMAGE //
+                        {/* IMAGE */}
                     </div>
                 </div>
             </article>

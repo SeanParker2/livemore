@@ -27,10 +27,10 @@ export function DeleteResourceButton({ resourceId }: { resourceId: string }) {
       formData.append('id', resourceId);
       const result = await deleteResource(null, formData);
       if (result?.success) {
-        toast.success(result.success);
+        toast.success(result.message);
         setOpen(false);
-      } else if (result?.failure) {
-        toast.error(result.failure);
+      } else {
+        toast.error(result.message || "删除失败");
       }
     } catch {
       toast.error("删除失败，请稍后重试");

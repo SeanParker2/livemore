@@ -14,10 +14,10 @@ export default function LoginPage() {
     startTransition(async () => {
       const result = await signInWithMagicLink(null, formData);
       
-      if (result?.error) {
-        toast.error("发送失败", { description: result.error });
-      } else if (result?.success) {
-        toast.success("发送成功", { description: result.success });
+      if (!result?.success) {
+        toast.error("发送失败", { description: result.message });
+      } else {
+        toast.success("发送成功", { description: result.message });
       }
     });
   };

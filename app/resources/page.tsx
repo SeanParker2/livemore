@@ -2,12 +2,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ResourceDownloadButton from "./ResourceDownloadButton";
+import { Resource } from "@/lib/types";
 
 export default async function ResourcesPage() {
   const supabase = await createClient();
   const { data: resources, error } = await supabase
     .from("resources")
-    .select("*, profile:profiles(billing_status)")
+    .select("*, profile:profiles(*)")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -16,6 +17,7 @@ export default async function ResourcesPage() {
     return <div>加载资源失败，请稍后重试。</div>;
   }
   
+  const resourcesList = resources as unknown as Resource[];
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
@@ -27,11 +29,13 @@ export default async function ResourcesPage() {
         </p>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {resources.map((resource) => (
+        {resourcesList.map((resource) => (
           <Card key={resource.id} className="flex flex-col">
             <CardHeader>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={resource.cover_image} alt={resource.title} className="w-full h-48 object-cover rounded-t-lg" />
+              {resource.cover_image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={resource.cover_image} alt={resource.title} className="w-full h-48 object-cover rounded-t-lg" />
+              )}
               <CardTitle className="mt-4">{resource.title}</CardTitle>
               <CardDescription>{resource.description}</CardDescription>
             </CardHeader>

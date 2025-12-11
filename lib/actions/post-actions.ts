@@ -1,26 +1,31 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
+import { ActionResponse, Post } from "@/lib/types";
 
-export async function incrementView(slug: string) {
+export async function incrementView(slug: string): Promise<ActionResponse> {
   try {
     const supabase = await createClient();
     const { error } = await supabase.rpc('increment_post_view', { post_slug: slug });
     if (error) {
       console.error(`Failed to increment view count for slug: ${slug}`, error);
+      return { success: false, message: error.message };
     }
+    return { success: true };
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error("Error calling incrementView RPC:", error.message);
+      return { success: false, message: error.message };
     } else {
       console.error("An unknown error occurred in incrementView RPC:", error);
+      return { success: false, message: "Unknown error" };
     }
   }
 }
 
-export async function getRelatedPosts(currentPostId: string, tagIds: number[]) {
+export async function getRelatedPosts(currentPostId: number, tagIds: number[]): Promise<ActionResponse<Post[]>> {
   if (!tagIds || tagIds.length === 0) {
-    return [];
+    return { success: true, data: [] };
   }
 
   const supabase = await createClient();
@@ -33,26 +38,26 @@ export async function getRelatedPosts(currentPostId: string, tagIds: number[]) {
 
   if (postTagsError || !postTags) {
     console.error("Error fetching related post IDs:", postTagsError);
-    return [];
+    return { success: false, message: "Error fetching related post IDs", data: [] };
   }
 
   const relatedPostIds = [...new Set(postTags.map(pt => pt.post_id))];
 
   if (relatedPostIds.length === 0) {
-    return [];
+    return { success: true, data: [] };
   }
 
   const { data: posts, error: postsError } = await supabase
     .from('posts')
-    .select('title, slug, created_at, tags(name, slug)')
+    .select('*, author:profiles(*), tags:tags(*)')
     .in('id', relatedPostIds)
     .eq('status', 'published')
     .limit(3);
 
   if (postsError) {
     console.error("Error fetching related posts:", postsError);
-    return [];
+    return { success: false, message: "Error fetching related posts", data: [] };
   }
 
-  return posts;
+  return { success: true, data: posts as unknown as Post[] };
 }

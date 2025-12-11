@@ -23,5 +23,18 @@ export const postSchema = z.object({
   summary: z.string().optional(),
   slug: z.string().optional(),
   is_premium: z.boolean().default(false),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "published", "archived"]).default("draft"),
+});
+
+export const profileSchema = z.object({
+  full_name: z.string().nullable().optional(),
+  avatar_url: z.string().nullable().optional(),
+  billing_status: z.string().nullable().optional(),
+});
+
+export const redemptionCodeSchema = z.object({
+  code: z.string(),
+  duration_days: z.number(),
+  is_used: z.boolean().default(false),
+  used_by: z.string().nullable().optional(),
 });

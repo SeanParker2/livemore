@@ -88,20 +88,26 @@ async function broadcastNewPostEmail({
   }
 }
 
+import { ActionResponse } from "@/lib/types";
+
+// ... (previous imports)
+
+// ... (helper functions verifyAdminSession, getFounderAuthorId, broadcastNewPostEmail remain unchanged)
+
 // === Action: 创建文章 ===
-export async function createPost(prevState: unknown, formData: FormData) {
+export async function createPost(prevState: unknown, formData: FormData): Promise<ActionResponse> {
     // 1. 鉴权
     const isAdmin = await verifyAdminSession();
-    if (!isAdmin) return { failure: "拒绝访问：无效的后台凭证" };
+    if (!isAdmin) return { success: false, message: "拒绝访问：无效的后台凭证" };
 
     // 2. 验证数据
     const rawData = {
-        title: formData.get('title') as string,
-        content: formData.get('content') as string,
-        summary: formData.get('summary') as string,
+        title: formData.get('title')?.toString() || '',
+        content: formData.get('content')?.toString(),
+        summary: formData.get('summary')?.toString(),
         is_premium: formData.get('is_premium') === 'true',
-        status: formData.get('status') as string,
-        tags: formData.get('tags') as string,
+        status: formData.get('status')?.toString(),
+        tags: formData.get('tags')?.toString(),
         broadcast_email: formData.get('broadcast_email') === 'true',
     };
 
@@ -110,11 +116,11 @@ export async function createPost(prevState: unknown, formData: FormData) {
         broadcast_email: z.boolean().optional(),
     }).safeParse(rawData);
 
-    if (!parsed.success) return { failure: "输入数据无效" };
+    if (!parsed.success) return { success: false, message: "输入数据无效", errors: parsed.error.flatten().fieldErrors };
 
     // 3. 获取作者ID
     const authorId = await getFounderAuthorId();
-    if (!authorId) return { failure: "系统错误：未找到任何 Founder 账号用于归属文章，请先在数据库创建用户。" };
+    if (!authorId) return { success: false, message: "系统错误：未找到任何 Founder 账号用于归属文章，请先在数据库创建用户。" };
 
     // 4. 写入数据库
     const supabase = createAdminClient();
@@ -134,7 +140,7 @@ export async function createPost(prevState: unknown, formData: FormData) {
       author_id: authorId
     }).select('id, slug').single();
 
-    if (error || !post) return { failure: error?.message || "Failed to create post." };
+    if (error || !post) return { success: false, message: error?.message || "Failed to create post." };
 
     // 5. 处理标签
     if (rawData.tags) {
@@ -156,22 +162,22 @@ export async function createPost(prevState: unknown, formData: FormData) {
 
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
-    return { success: "文章已成功发布！" };
+    return { success: true, message: "文章已成功发布！" };
 }
 
 // === Action: 更新文章 ===
-export async function updatePost(prevState: unknown, formData: FormData) {
+export async function updatePost(prevState: unknown, formData: FormData): Promise<ActionResponse> {
     const isAdmin = await verifyAdminSession();
-    if (!isAdmin) return { failure: "拒绝访问" };
+    if (!isAdmin) return { success: false, message: "拒绝访问" };
 
     const id = Number(formData.get('id'));
     const rawData = {
-        title: formData.get('title') as string,
-        content: formData.get('content') as string,
-        summary: formData.get('summary') as string,
+        title: formData.get('title')?.toString() || '',
+        content: formData.get('content')?.toString(),
+        summary: formData.get('summary')?.toString(),
         is_premium: formData.get('is_premium') === 'true',
-        status: formData.get('status') as string,
-        tags: formData.get('tags') as string,
+        status: formData.get('status')?.toString(),
+        tags: formData.get('tags')?.toString(),
         broadcast_email: formData.get('broadcast_email') === 'true',
     };
 
@@ -184,7 +190,7 @@ export async function updatePost(prevState: unknown, formData: FormData) {
       status: rawData.status
     }).eq('id', id);
 
-    if (error) return { failure: error.message };
+    if (error) return { success: false, message: error.message };
 
     // 更新标签 (先删后加)
     await supabase.from('post_tags').delete().eq('post_id', id);
@@ -211,22 +217,22 @@ export async function updatePost(prevState: unknown, formData: FormData) {
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
     revalidatePath(`/posts/[slug]`, 'page');
-    return { success: "文章已成功更新！" };
+    return { success: true, message: "文章已成功更新！" };
 }
 
 // === Action: 删除文章 ===
-export async function deletePost(prevState: unknown, formData: FormData) {
+export async function deletePost(prevState: unknown, formData: FormData): Promise<ActionResponse> {
     const isAdmin = await verifyAdminSession();
-    if (!isAdmin) return { failure: "拒绝访问" };
+    if (!isAdmin) return { success: false, message: "拒绝访问" };
 
     const id = Number(formData.get('id'));
     
     const supabase = createAdminClient();
     const { error } = await supabase.from('posts').delete().eq('id', id);
 
-    if (error) return { failure: error.message };
+    if (error) return { success: false, message: error.message };
 
     revalidatePath('/admin');
     revalidatePath('/', 'layout');
-    return { success: "文章已成功删除。" };
+    return { success: true, message: "文章已成功删除。" };
 }

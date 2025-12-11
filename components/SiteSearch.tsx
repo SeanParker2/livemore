@@ -12,19 +12,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-import { Button } from "./ui/button"
-
-interface Post {
-  id: number;
-  title: string;
-  slug: string;
-}
+import { Post } from "@/lib/types"
 
 export function SiteSearch() {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
-  const [results, setResults] = React.useState<Post[]>([])
+  const [results, setResults] = React.useState<Pick<Post, "id" | "title" | "slug">[]>([])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -80,7 +74,7 @@ export function SiteSearch() {
                   key={post.id}
                   value={post.title}
                   onSelect={() => {
-                    runCommand(() => router.push(`/p/${post.slug}`))
+                    runCommand(() => router.push(`/posts/${post.slug}`))
                   }}
                 >
                   <File className="mr-2 h-4 w-4" />
