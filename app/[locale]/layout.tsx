@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Libre_Baskerville, JetBrains_Mono } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -44,36 +44,51 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 import { Analytics } from "@vercel/analytics/react";
 
-export default function RootLayout({
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/src/navigation';
+
+export default async function RootLayout({
   children,
+  params
 }: Readonly<{
   children: React.ReactNode;
+  params: Promise<{locale: string}>;
 }>) {
+  const {locale} = await params;
+  
+  if (!routing.locales.includes(locale as "en" | "zh")) {
+    notFound();
+  }
+
+  const messages = await getMessages();
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased leading-relaxed",
-          inter.variable,
-          libreBaskerville.variable,
-          jetbrainsMono.variable
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="relative flex min-h-screen flex-col bg-background">
-            <Ticker />
+    <html lang={locale} suppressHydrationWarning>
+      <body className={cn(
+        "min-h-screen bg-background font-sans antialiased",
+        inter.variable,
+        libreBaskerville.variable,
+        jetbrainsMono.variable
+      )}>
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <Header />
-            <main className="flex-1">{children}</main>
+            <main className="min-h-screen flex flex-col">
+              <Ticker />
+              {children}
+            </main>
             <Footer />
-          </div>
-          <Toaster />
-          <Analytics />
-        </ThemeProvider>
+            <Toaster />
+            <Analytics />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -26,8 +26,8 @@ export default function AboutPage() {
         <hr className="my-8" />
 
         <h3>关于创始人</h3>
-        <div className="flex items-start gap-6 not-prose mt-8 p-6 bg-muted/30 rounded-xl">
-            <Avatar className="h-16 w-16 border-2 border-background">
+        <div className="flex items-start gap-6 not-prose mt-8 p-6 bg-muted/30 rounded-md border border-fine">
+            <Avatar className="h-16 w-16 border border-fine">
               <AvatarImage src="https://i.pravatar.cc/150?u=LivemoreFounder" />
               <AvatarFallback>LM</AvatarFallback>
             </Avatar>

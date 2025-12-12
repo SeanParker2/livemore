@@ -2,7 +2,7 @@ import React from 'react';
 
 export function Ticker() {
   return (
-    <div className="bg-slate-900 text-white text-[10px] font-mono py-1.5 overflow-hidden whitespace-nowrap border-b border-slate-900">
+    <div className="bg-slate-900 text-white text-[10px] font-mono py-1.5 overflow-hidden whitespace-nowrap border-b border-fine">
         <div className="container mx-auto px-6 flex justify-between items-center">
             <div className="flex gap-6 opacity-80">
                 <span>BTC/USD <span className="text-green-400">▲ 68,420.50</span></span>

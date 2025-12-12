@@ -21,17 +21,17 @@ export function TrendingSidebar() {
 
   return (
     <div>
-        <h4 className="font-mono text-xs font-bold text-slate-900 uppercase tracking-widest mb-6">
+        <h4 className="font-mono text-xs font-bold text-foreground uppercase tracking-widest mb-6">
             Trending Analysis
         </h4>
         <ul className="space-y-6">
             {trendingPosts.map((post, index) => (
                 <li key={post.id} className="group cursor-pointer">
                     <div className="flex gap-4 items-baseline">
-                        <span className="font-mono text-xs text-slate-300 font-bold">0{index + 1}</span>
+                        <span className="font-mono text-xs text-muted-foreground/40 font-bold">0{index + 1}</span>
                         <div>
                             <Link href={post.slug}>
-                                <h5 className="font-serif font-bold text-base leading-tight group-hover:text-indigo-800 transition-colors text-slate-900">
+                                <h5 className="font-serif font-bold text-base leading-tight group-hover:text-primary transition-colors text-foreground">
                                     {post.title}
                                 </h5>
                             </Link>

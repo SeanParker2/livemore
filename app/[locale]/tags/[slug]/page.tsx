@@ -59,7 +59,7 @@ export default async function TagPage({ params }: { params: { slug: string } }) 
                 <p className="text-muted-foreground text-sm mb-2">
                   {post.summary}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-mono">
                   <span>{post.author.full_name}</span>
                   <span>•</span>
                   <span>{new Date(post.created_at).toLocaleDateString('zh-CN')}</span>

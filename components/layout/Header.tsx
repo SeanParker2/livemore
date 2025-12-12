@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/src/navigation";
+import NextLink from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,11 @@ import {
 import { signOut } from "@/lib/actions/auth-actions";
 import { MobileNav } from "./MobileNav";
 import { SiteSearch } from "@/components/SiteSearch";
+import { getTranslations } from "next-intl/server";
+import LocaleSwitcher from "./LocaleSwitcher";
 
 export async function Header() {
+  const t = await getTranslations('Nav');
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -32,24 +36,25 @@ export async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[#FDFDFD]/90 backdrop-blur-md border-b border-fine">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-fine">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-900 flex items-center justify-center">
-                        <span className="text-white font-serif font-bold text-lg italic">S</span>
+                    <div className="w-8 h-8 bg-foreground flex items-center justify-center">
+                        <span className="text-background font-serif font-bold text-lg italic">S</span>
                     </div>
-                    <span className="font-serif font-bold text-xl tracking-tight text-slate-900">Signal & Cipher</span>
+                    <span className="font-serif font-bold text-xl tracking-tight text-foreground">Signal & Cipher</span>
                 </Link>
             </div>
             
-            <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-500">
-                <Link href="/archive" className="hover:text-slate-900 transition-colors">Intelligence</Link>
-                <Link href="/markets" className="hover:text-slate-900 transition-colors">Markets</Link>
-                <Link href="/signals" className="hover:text-slate-900 transition-colors">Signals</Link>
+            <nav className="hidden md:flex gap-8 text-sm font-medium text-muted-foreground items-center">
+                <Link href="/archive" className="hover:text-foreground transition-colors">{t('intelligence')}</Link>
+                <Link href="/markets" className="hover:text-foreground transition-colors">{t('markets')}</Link>
+                <Link href="/signals" className="hover:text-foreground transition-colors">{t('signals')}</Link>
                 {billingStatus === 'founder' && (
-                     <Link href="/admin" className="hover:text-slate-900 transition-colors font-bold text-amber-600">Admin</Link>
+                     <NextLink href="/admin" className="hover:text-foreground transition-colors font-bold text-amber-600">{t('admin')}</NextLink>
                 )}
+                <LocaleSwitcher />
             </nav>
 
             <div className="flex items-center gap-4">
@@ -81,7 +86,7 @@ export async function Header() {
                         {billingStatus === 'founder' && (
                         <>
                             <DropdownMenuItem asChild>
-                            <Link href="/admin">管理后台</Link>
+                            <NextLink href="/admin">{t('admin')}</NextLink>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                         </>

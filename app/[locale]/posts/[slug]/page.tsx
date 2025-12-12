@@ -122,7 +122,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
       {post.is_premium && !canViewFullContent && (
         <div className="relative flex justify-center -mt-16">
-          <Card className="p-6 text-center shadow-lg">
+          <Card className="p-6 text-center">
             <CardContent className="p-0">
               <h3 className="text-xl font-bold mb-2">Subscribe to read the full analysis</h3>
               <p className="text-muted-foreground mb-4">Unlock this post and all future analysis.</p>

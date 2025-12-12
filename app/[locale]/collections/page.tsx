@@ -35,7 +35,7 @@ export default async function CollectionsPage() {
             const postCount = collection.collection_posts[0]?.count || 0;
             return (
               <Link href={`/collections/${collection.slug}`} key={collection.id} className="block">
-                <Card className="h-full overflow-hidden group hover:shadow-lg transition-shadow duration-300">
+                <Card className="h-full overflow-hidden group transition-colors duration-300">
                   <CardHeader className="p-0">
                     <div className="aspect-video relative">
                       <Image

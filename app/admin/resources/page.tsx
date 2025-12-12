@@ -68,7 +68,7 @@ async function ResourcesTable({
                 <TableCell className="font-medium max-w-xs truncate" title={resource.title}>
                   {resource.title}
                 </TableCell>
-                <TableCell>{new Date(resource.created_at).toLocaleDateString("zh-CN")}</TableCell>
+                <TableCell className="font-mono">{new Date(resource.created_at).toLocaleDateString("zh-CN")}</TableCell>
                 <TableCell>
                   <Badge variant={resource.is_premium ? "default" : "secondary"}>
                     {resource.is_premium ? "会员专享" : "免费"}

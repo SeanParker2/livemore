@@ -80,6 +80,25 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+@utility border-fine {
+  border-color: rgba(0, 0, 0, 0.08);
+  .dark & {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+@layer base {
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+  }
+  
+  /* Target common metadata patterns if possible, or utility class usage */
+  .metadata, 
+  [data-type="metadata"] {
+    font-family: var(--font-mono);
+  }
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -124,9 +143,6 @@
 }
 
 /* Custom Styles from Demo */
-.border-fine {
-  border-color: rgba(0, 0, 0, 0.08);
-}
 
 .hover-underline-animation {
   display: inline-block;

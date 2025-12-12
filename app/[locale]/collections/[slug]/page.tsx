@@ -55,7 +55,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
 
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8">
-      <header className="relative mb-12 h-80 rounded-lg overflow-hidden flex items-center justify-center text-center p-6 bg-secondary">
+      <header className="relative mb-12 h-80 rounded-md border border-fine overflow-hidden flex items-center justify-center text-center p-6 bg-secondary">
         {collection.cover_image && (
           <Image
             src={collection.cover_image}
@@ -89,7 +89,7 @@ export default async function CollectionDetailPage({ params }: { params: { slug:
                       <p className="text-muted-foreground mb-4 line-clamp-2">
                         {post.summary}
                       </p>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center justify-between text-sm text-muted-foreground font-mono">
                         <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         <div className="flex gap-2">
                           {post.tags.slice(0, 3).map((tag) => (

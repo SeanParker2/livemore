@@ -73,7 +73,7 @@ export function Search() {
         </kbd>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 shadow-lg">
+        <DialogContent className="overflow-hidden p-0">
           <Command>
             <CommandInput
               placeholder="输入关键词搜索文章..."

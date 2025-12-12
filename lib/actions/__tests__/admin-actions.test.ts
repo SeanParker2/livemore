@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createPost } from '../admin-actions';
 
 // Mock dependencies
-const { mockInsert, mockSelect, mockFrom, mockGet, mockSingle } = vi.hoisted(() => {
+const { mockFrom, mockGet, mockSingle } = vi.hoisted(() => {
   const mockSingle = vi.fn();
   
   const queryBuilder = {
@@ -14,12 +14,10 @@ const { mockInsert, mockSelect, mockFrom, mockGet, mockSingle } = vi.hoisted(() 
     single: mockSingle,
   };
   
-  const mockInsert = queryBuilder.insert;
-  const mockSelect = queryBuilder.select;
   const mockFrom = vi.fn(() => queryBuilder);
   const mockGet = vi.fn();
   
-  return { mockInsert, mockSelect, mockFrom, mockGet, mockSingle };
+  return { mockFrom, mockGet, mockSingle };
 });
 
 vi.mock('@/lib/supabase/admin', () => ({

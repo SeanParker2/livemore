@@ -28,7 +28,7 @@ export async function RelatedPosts({ postId, tagIds }: RelatedPostsProps) {
                 <CardTitle className="text-lg group-hover:text-primary transition-colors">{post.title}</CardTitle>
               </CardHeader>
               <CardContent className="grow flex flex-col justify-end">
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <div className="flex items-center justify-between text-sm text-muted-foreground font-mono">
                   <span>{new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                   <div className="flex gap-2">
                     {post.tags.slice(0, 2).map((tag) => (

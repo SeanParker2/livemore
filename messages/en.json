@@ -1,0 +1,13 @@
+{
+  "Nav": {
+    "markets": "Markets",
+    "intelligence": "Intelligence",
+    "signals": "Signals",
+    "admin": "Admin",
+    "login": "Login",
+    "subscribe": "Subscribe"
+  },
+  "Hero": {
+    "title": "Rational Investing, Living Freely"
+  }
+}

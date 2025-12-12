@@ -60,7 +60,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: { pa
                 <p className="text-muted-foreground mb-2">
                   {post.summary}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground font-mono">
                   {new Date(post.created_at).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-')}
                 </p>
               </article>

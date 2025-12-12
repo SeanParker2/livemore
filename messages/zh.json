@@ -1,0 +1,13 @@
+{
+  "Nav": {
+    "markets": "市场",
+    "intelligence": "情报",
+    "signals": "信号",
+    "admin": "管理后台",
+    "login": "登录",
+    "subscribe": "订阅"
+  },
+  "Hero": {
+    "title": "理性投资，自在生活"
+  }
+}
