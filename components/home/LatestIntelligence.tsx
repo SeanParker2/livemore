@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import { Lock } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Post } from "@/lib/types";

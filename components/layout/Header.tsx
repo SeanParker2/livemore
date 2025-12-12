@@ -3,6 +3,7 @@ import NextLink from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Triangle } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -41,9 +42,9 @@ export async function Header() {
             <div className="flex items-center gap-3">
                 <Link href="/" className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-foreground flex items-center justify-center">
-                        <span className="text-background font-serif font-bold text-lg italic">S</span>
+                        <Triangle className="w-4 h-4 text-background fill-current" />
                     </div>
-                    <span className="font-serif font-bold text-xl tracking-tight text-foreground">Signal & Cipher</span>
+                    <span className="font-serif font-bold text-xl tracking-widest text-foreground">AXIOM</span>
                 </Link>
             </div>
             

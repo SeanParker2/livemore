@@ -29,7 +29,7 @@ export const NewPostEmail = ({ postTitle, postExcerpt, postUrl, isPremium }: New
     <Preview>{postTitle}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={logo}>Livemore 最新研报</Text>
+        <Text style={logo}>AXIOM 最新研报</Text>
         <Heading style={h1}>{postTitle}</Heading>
         <Text style={paragraph}>{postExcerpt}</Text>
         <Section style={btnContainer}>

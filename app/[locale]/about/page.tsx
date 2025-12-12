@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "关于 - Livemore",
+  title: "关于 - AXIOM",
   description: "在这个噪音喧嚣的市场中，寻找确定的价值。",
 };
 
@@ -12,7 +12,7 @@ export default function AboutPage() {
       <article className="prose prose-lg prose-slate dark:prose-invert mx-auto font-serif">
         <h1>在这个噪音喧嚣的市场中，寻找确定的价值。</h1>
         <p className="lead text-xl text-muted-foreground not-prose mb-8">
-          Livemore 不仅仅是一份投资周刊，它是理性投资者对抗市场波动的避风港。
+          AXIOM 不仅仅是一份投资周刊，它是理性投资者对抗市场波动的避风港。
         </p>
         
         <h3>我们相信什么？</h3>
@@ -28,11 +28,11 @@ export default function AboutPage() {
         <h3>关于创始人</h3>
         <div className="flex items-start gap-6 not-prose mt-8 p-6 bg-muted/30 rounded-md border border-fine">
             <Avatar className="h-16 w-16 border border-fine">
-              <AvatarImage src="https://i.pravatar.cc/150?u=LivemoreFounder" />
+              <AvatarImage src="https://i.pravatar.cc/150?u=AXIOMFounder" />
               <AvatarFallback>LM</AvatarFallback>
             </Avatar>
             <div>
-              <h4 className="text-lg font-bold font-sans">Livemore 站长</h4>
+              <h4 className="text-lg font-bold font-sans">AXIOM 站长</h4>
               <p className="text-sm text-muted-foreground mt-1">
                 前对冲基金分析师，现独立撰稿人。拥有 10 年美股与加密资产配置经验。致力于用最简单的语言，拆解最复杂的商业逻辑。
               </p>

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'edge';
 
-export const alt = 'Livemore';
+export const alt = 'AXIOM';
 export const size = {
   width: 1200,
   height: 630,
@@ -78,7 +78,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
               padding: '0 40px',
             }}
           >
-            {post?.title || 'Livemore Analysis'}
+            {post?.title || 'AXIOM Analysis'}
           </h1>
 
           {/* Footer */}
@@ -91,10 +91,10 @@ export default async function Image({ params }: { params: { slug: string } }) {
             fontFamily: '"Inter"',
           }}>
             <span style={{ fontFamily: '"Libre Baskerville"', fontWeight: 700, fontSize: '32px' }}>
-              Livemore
+              AXIOM
             </span>
             <span>
-              By {post?.profiles?.full_name || 'The Livemore Team'}
+              By {post?.profiles?.full_name || 'The AXIOM Team'}
             </span>
           </div>
         </div>

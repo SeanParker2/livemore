@@ -2,9 +2,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Link } from '@/src/navigation';
 import { ThemeToggle } from '../ThemeToggle';
-import { Menu } from 'lucide-react';
+import { Menu, Triangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/sheet';
 
 interface MobileNavProps {
-  isFounder: boolean;
+  isFounder?: boolean;
 }
 
 export function MobileNav({ isFounder }: MobileNavProps) {
@@ -42,22 +43,32 @@ export function MobileNav({ isFounder }: MobileNavProps) {
           <div className="border-b pb-4">
             <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
               <div className="w-8 h-8 bg-slate-900 flex items-center justify-center">
-                  <span className="text-white font-serif font-bold text-lg italic">S</span>
+                  <Triangle className="w-4 h-4 text-white fill-current" />
               </div>
-              <span className="font-serif font-bold text-xl tracking-tight text-slate-900">Signal & Cipher</span>
+              <span className="font-serif font-bold text-xl tracking-widest text-slate-900">AXIOM</span>
             </Link>
           </div>
           <nav className="grow mt-6">
             <ul className="space-y-4">
               {navLinks.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
+                  {link.href === '/admin' ? (
+                    <NextLink
+                      href={link.href}
+                      className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </NextLink>
+                  ) : (
+                    <Link
+                      href={link.href}
+                      className="text-lg font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

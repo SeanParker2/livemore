@@ -26,7 +26,7 @@ export default function LoginPage() {
     <div className="container mx-auto flex flex-col justify-center items-center min-h-[calc(100vh-200px)]">
       <div className="w-full max-w-sm p-8 space-y-6 bg-card text-card-foreground rounded-md border border-fine">
         <div className="text-center">
-          <h1 className="text-3xl font-bold font-serif">欢迎回到 Livemore</h1>
+          <h1 className="text-3xl font-bold font-serif">欢迎回到 AXIOM</h1>
           <p className="text-muted-foreground font-mono text-xs mt-2">专业投资者的每日必读。请输入邮箱登录或注册。</p>
         </div>
         

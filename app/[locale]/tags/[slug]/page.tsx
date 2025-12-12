@@ -3,7 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { Libre_Baskerville } from 'next/font/google';
-import Link from "next/link";
+import { Link } from "@/src/navigation";
+import { notFound } from "next/navigation";
 
 const libreBaskerville = Libre_Baskerville({
   subsets: ['latin'],
@@ -35,7 +36,7 @@ export default async function TagPage({ params }: { params: { slug: string } }) 
     .single();
 
   if (!tag) {
-    return <div>Tag not found</div>;
+    notFound();
   }
 
   return (

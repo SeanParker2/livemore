@@ -61,7 +61,7 @@ async function broadcastNewPostEmail({
     const postUrl = `${baseUrl}/posts/${slug}`;
 
     const batch = subscribers.map((subscriber: { email: string }) => ({
-      from: "Livemore <noreply@livemore.io>",
+      from: "AXIOM <noreply@axiom.com>",
       to: [subscriber.email],
       subject: `新研报发布: ${title}`,
       react: NewPostEmail({

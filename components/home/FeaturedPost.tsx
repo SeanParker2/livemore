@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import { Post } from "@/lib/types";
 

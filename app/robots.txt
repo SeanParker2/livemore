@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.livemore.io/sitemap.xml
+Sitemap: https://www.axiom.com/sitemap.xml

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import { notFound } from "next/navigation";
 import { ViewTracker } from "./_components/ViewTracker";
 import { RelatedPosts } from "@/components/RelatedPosts";

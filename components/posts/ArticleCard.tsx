@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import { format } from "date-fns";
 import { Lock } from 'lucide-react';
 import { AISummaryButton } from "./AISummaryButton";

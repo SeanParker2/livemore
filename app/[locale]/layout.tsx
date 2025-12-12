@@ -17,22 +17,22 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: {
-    default: "Livemore - 理性投资，自在生活。",
-    template: `%s | Livemore`,
+    default: "AXIOM - First Principles of Wealth",
+    template: `%s | AXIOM`,
   },
-  description: "深度解读全球市场、加密资产与宏观趋势。助您做出更明智的投资决策，享受更富足的生活。",
+  description: "Deciphering macro trends and crypto assets with mathematical precision.",
   openGraph: {
-    title: 'Livemore - 理性投资，自在生活。',
-    description: '深度解读全球市场、加密资产与宏观趋势。助您做出更明智的投资决策，享受更富足的生活。',
+    title: 'AXIOM - First Principles of Wealth',
+    description: 'Deciphering macro trends and crypto assets with mathematical precision.',
     url: process.env.NEXT_PUBLIC_SITE_URL,
-    siteName: 'Livemore',
+    siteName: 'AXIOM',
     locale: 'zh_CN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Livemore - 理性投资，自在生活。',
-    description: '深度解读全球市场、加密资产与宏观趋势。助您做出更明智的投资决策，享受更富足的生活。',
+    title: 'AXIOM - First Principles of Wealth',
+    description: 'Deciphering macro trends and crypto assets with mathematical precision.',
   },
 };
 

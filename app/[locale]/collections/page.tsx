@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "精选集 - Livemore",
+  title: "精选集 - AXIOM",
   description: "系统化学习，探索深度整理的系列文章。",
 };
 

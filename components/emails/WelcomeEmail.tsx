@@ -25,8 +25,8 @@ export const WelcomeEmail = ({ firstName }: WelcomeEmailProps) => (
     <Preview>感谢订阅！这里是您需要的市场深度分析。</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Text style={logo}>Livemore</Text>
-        <Heading style={h1}>欢迎加入 Livemore, {firstName}!</Heading>
+        <Text style={logo}>AXIOM</Text>
+        <Heading style={h1}>欢迎加入 AXIOM, {firstName}!</Heading>
         <Text style={paragraph}>
           很高兴能与您相遇。在这里，我们拒绝噪音，只关注未来 5-10
           年的确定性机会。

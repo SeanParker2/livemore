@@ -11,8 +11,8 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   const feed = new RSS({
-    title: "Livemore | 理性投资，自在生活",
-    description: "深度解读全球市场、加密资产与宏观趋势。",
+    title: "AXIOM | 财富的第一性原理",
+    description: "以数学般的精确度解码宏观趋势与加密资产。",
     feed_url: `${process.env.NEXT_PUBLIC_BASE_URL}/feed.xml`,
     site_url: `${process.env.NEXT_PUBLIC_BASE_URL}`,
     language: "zh-CN",

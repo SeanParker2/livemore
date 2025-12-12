@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/src/navigation";
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { Pagination } from "@/components/ui/pagination";
 
 export const metadata: Metadata = {
-  title: "文章归档 - Livemore",
-  description: "探索 Livemore 的所有历史洞察与研报。",
+  title: "文章归档 - AXIOM",
+  description: "探索 AXIOM 的所有历史洞察与研报。",
 };
 
 const POSTS_PER_PAGE = 10;
@@ -40,7 +40,7 @@ export default async function ArchivePage({ searchParams }: { searchParams: { pa
           文章归档
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          探索 Livemore 的所有历史洞察与研报。
+          探索 AXIOM 的所有历史洞察与研报。
         </p>
       </header>
 

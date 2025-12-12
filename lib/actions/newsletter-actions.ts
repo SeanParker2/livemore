@@ -39,9 +39,9 @@ export async function subscribeToNewsletter(prevState: unknown, formData: FormDa
 
   try {
     await resend.emails.send({
-      from: 'Signal & Cipher <noreply@livemore.io>',
+      from: 'AXIOM <noreply@axiom.com>',
       to: email,
-      subject: '欢迎加入 Signal & Cipher：理性投资者的第一步',
+      subject: '欢迎加入 AXIOM：理性投资者的第一步',
       react: WelcomeEmail({ firstName: "" }),
     });
   } catch (emailError) {
